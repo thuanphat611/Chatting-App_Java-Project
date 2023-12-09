@@ -1,9 +1,7 @@
 package App.Client;
 import App.Client.UI.*;
-import App.Server.Server;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class Client extends JFrame {
     public void createAndShowGUI() {

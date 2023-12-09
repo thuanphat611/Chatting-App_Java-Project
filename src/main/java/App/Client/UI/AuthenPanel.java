@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Objects;
 
 public class AuthenPanel extends JPanel {
     JFrame parent;
@@ -17,6 +18,8 @@ public class AuthenPanel extends JPanel {
         this.prev = prev;
         this.label = new JLabel("");
         this.form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.PAGE_AXIS));
+        form.setPreferredSize(new Dimension(160, 160));
 
         setPreferredSize(new Dimension(500, 400));
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -47,7 +50,14 @@ public class AuthenPanel extends JPanel {
 
 
         content.add(header, BorderLayout.PAGE_START);
-        content.add(form, BorderLayout.CENTER);
+
+        JPanel formWrap = new JPanel();
+        formWrap.setLayout(new BorderLayout());
+        JPanel formCentering = new JPanel();
+        formCentering.setLayout(new FlowLayout(FlowLayout.CENTER));
+        formCentering.add(form);
+        formWrap.add(formCentering, BorderLayout.PAGE_START);
+        content.add(formWrap, BorderLayout.CENTER);
 
         backBtn.addActionListener(new ActionListener() {
             @Override
@@ -60,9 +70,35 @@ public class AuthenPanel extends JPanel {
     }
 
     public void setType(String type) {
-        if (type == "Login") {
+        if (Objects.equals(type, "Login")) {
             label.setText("Login");Font labelFont = label.getFont();
             label.setFont(new Font(labelFont.getName(), Font.PLAIN, 30));
+
+            form.removeAll();
+
+            JPanel usernameWrap = new JPanel();
+            usernameWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
+            JLabel usernameLbl = new JLabel("Username");
+            usernameWrap.add(usernameLbl);
+            JTextField usernameIn = new JTextField();
+            JPanel passwordWrap = new JPanel();
+            passwordWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
+            JLabel passwordLbl = new JLabel("Password");
+            passwordWrap.add(passwordLbl);
+            JTextField passwordIn = new JTextField();
+
+            JPanel submitWrap = new JPanel();
+            submitWrap.setLayout(new FlowLayout(FlowLayout.CENTER));
+            JButton submit = new JButton("Login");
+            submitWrap.add(submit);
+
+            form.add(usernameWrap);
+            form.add(usernameIn);
+            form.add(Box.createRigidArea(new Dimension(0, 10)));
+            form.add(passwordWrap);
+            form.add(passwordIn);
+            form.add(Box.createRigidArea(new Dimension(0, 10)));
+            form.add(submitWrap);
         }
     }
 }
