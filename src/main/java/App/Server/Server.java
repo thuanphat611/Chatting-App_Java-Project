@@ -21,6 +21,7 @@ public class Server implements Runnable {
     public void run() {
         try {
             this.server = new ServerSocket(9999);
+            System.out.println("Server started at port: " + server.getLocalPort());
             while (!finish)
             {
                 Socket client = server.accept();
@@ -162,5 +163,10 @@ public class Server implements Runnable {
             if (!socket.isClosed())
                 socket.close();
         }
+    }
+
+    public static void main(String[] args) {
+        Server server = new Server();
+        server.run();
     }
 }
