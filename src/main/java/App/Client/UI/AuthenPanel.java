@@ -11,6 +11,7 @@ public class AuthenPanel extends JPanel {
     JPanel prev;
 
     JLabel label;
+    JButton back;
     JPanel form;
 
     public AuthenPanel(JFrame parent, JPanel prev) {
@@ -19,7 +20,6 @@ public class AuthenPanel extends JPanel {
         this.label = new JLabel("");
         this.form = new JPanel();
         form.setLayout(new BoxLayout(form, BoxLayout.PAGE_AXIS));
-        form.setPreferredSize(new Dimension(160, 160));
 
         setPreferredSize(new Dimension(500, 400));
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -38,9 +38,9 @@ public class AuthenPanel extends JPanel {
         header.setLayout(new BorderLayout());
         JPanel backWrap = new JPanel();
         backWrap.setLayout(new BorderLayout());
-        JButton backBtn =  new JButton("Back");
-        backWrap.add(backBtn, BorderLayout.PAGE_START);
-        backBtn.setPreferredSize(new Dimension(80, 30));
+        back =  new JButton("Back");
+        backWrap.add(back, BorderLayout.PAGE_START);
+        back.setPreferredSize(new Dimension(80, 30));
         header.add(backWrap, BorderLayout.LINE_START);
         JPanel labelWrap = new JPanel();
         labelWrap.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -59,7 +59,7 @@ public class AuthenPanel extends JPanel {
         formWrap.add(formCentering, BorderLayout.PAGE_START);
         content.add(formWrap, BorderLayout.CENTER);
 
-        backBtn.addActionListener(new ActionListener() {
+        back.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 parent.setContentPane(prev);
@@ -75,6 +75,7 @@ public class AuthenPanel extends JPanel {
             label.setFont(new Font(labelFont.getName(), Font.PLAIN, 30));
 
             form.removeAll();
+            form.setPreferredSize(new Dimension(160, 160));
 
             JPanel usernameWrap = new JPanel();
             usernameWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -99,6 +100,61 @@ public class AuthenPanel extends JPanel {
             form.add(passwordIn);
             form.add(Box.createRigidArea(new Dimension(0, 10)));
             form.add(submitWrap);
+
+            submit.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    back.setEnabled(false);
+                }
+            });
+        }
+        else {
+            label.setText("Register");
+            Font labelFont = label.getFont();
+            label.setFont(new Font(labelFont.getName(), Font.PLAIN, 30));
+
+            form.removeAll();
+            form.setPreferredSize(new Dimension(160, 220));
+
+            JPanel usernameWrap = new JPanel();
+            usernameWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
+            JLabel usernameLbl = new JLabel("Username");
+            usernameWrap.add(usernameLbl);
+            JTextField usernameIn = new JTextField();
+            JPanel passwordWrap = new JPanel();
+            passwordWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
+            JLabel passwordLbl = new JLabel("Password");
+            passwordWrap.add(passwordLbl);
+            JTextField passwordIn = new JTextField();
+            JPanel confirmPasswordWrap = new JPanel();
+            confirmPasswordWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
+            JLabel confirmPasswordLbl = new JLabel("Confirm password");
+            confirmPasswordWrap.add(confirmPasswordLbl);
+            JTextField confirmPasswordIn = new JTextField();
+
+            JPanel submitWrap = new JPanel();
+            submitWrap.setLayout(new FlowLayout(FlowLayout.CENTER));
+            JButton submit = new JButton("Register");
+            submitWrap.add(submit);
+
+            form.add(usernameWrap);
+            form.add(usernameIn);
+            form.add(Box.createRigidArea(new Dimension(0, 10)));
+            form.add(passwordWrap);
+            form.add(passwordIn);
+            form.add(Box.createRigidArea(new Dimension(0, 10)));
+            form.add(confirmPasswordWrap);
+            form.add(confirmPasswordIn);
+            form.add(Box.createRigidArea(new Dimension(0, 10)));
+            form.add(submitWrap);
+
+            submit.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    back.setEnabled(false);
+                    //TODO: enable back button
+                }
+            });
         }
     }
 }
