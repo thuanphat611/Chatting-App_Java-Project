@@ -26,6 +26,8 @@ public class Server implements Runnable {
             {
                 Socket client = server.accept();
                 ConnectionHandler handler = new ConnectionHandler(client, clientList.size());
+                Thread child = new Thread(handler);
+                child.start();
                 clientList.add(handler);
             }
         } catch (Exception e) {
@@ -83,7 +85,6 @@ public class Server implements Runnable {
                 this.receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                 System.out.println("Get connection from " + socket.getPort() + "(local)");
-                send("/connected");
 
                 //Login/signup
                 while (true) {
@@ -139,10 +140,8 @@ public class Server implements Runnable {
                 }
                 while (true);
             }
-
-
            catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.out.println("Client " + socket.getPort() + " has disconnected");
            }
         }
 

@@ -1,5 +1,7 @@
 package App.Client.UI;
 
+import App.Client.Controller.Controller;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -7,8 +9,10 @@ import java.awt.event.ActionListener;
 
 public class HomePanel extends JPanel {
     JFrame parent;
-    public HomePanel(JFrame parent) {
+    Controller controller;
+    public HomePanel(JFrame parent, Controller controller) {
         this.parent = parent;
+        this.controller = controller;
 
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(400, 300));
@@ -49,6 +53,15 @@ public class HomePanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 parent.setContentPane(authen);
                 authen.setType("Login");
+                parent.pack();
+                parent.validate();
+            }
+        });
+        signupBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                parent.setContentPane(authen);
+                authen.setType("Register");
                 parent.pack();
                 parent.validate();
             }
