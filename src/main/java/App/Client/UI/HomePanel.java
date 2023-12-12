@@ -47,7 +47,7 @@ public class HomePanel extends JPanel {
 
         add(btnGroupWrap, BorderLayout.CENTER);
 
-        AuthenPanel authen = new AuthenPanel(parent, this);
+        AuthenPanel authen = new AuthenPanel(parent, this, controller);
         loginBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

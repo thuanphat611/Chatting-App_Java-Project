@@ -7,7 +7,7 @@ import java.io.OutputStreamWriter;
 
 class Sender implements Runnable {
     private BufferedWriter bw;
-    private boolean isDone;
+    private volatile boolean isDone;
     public Sender(OutputStream out) {
         isDone = false;
         bw = new BufferedWriter(new OutputStreamWriter(out));
@@ -16,9 +16,9 @@ class Sender implements Runnable {
     public void run() {
         System.out.println("Send thread started");
         while (!isDone) {
-            if (Thread.currentThread().isInterrupted())
-                close();
+            Thread.onSpinWait();
         }
+        System.out.println("Here 1");
     }
 
     public void close() {
@@ -29,5 +29,15 @@ class Sender implements Runnable {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public boolean sendLogin(String username, String password) {
+        try {
+            bw.write("/login|" + username + "|" + password);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return  false;
+        }
+        return true;
     }
 }

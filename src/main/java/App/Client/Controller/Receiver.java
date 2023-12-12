@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 
 class Receiver implements Runnable {
     private BufferedReader br;
-    private boolean isDone;
+    private volatile boolean isDone;
     public Receiver(InputStream in) {
         isDone = false;
         br = new BufferedReader(new InputStreamReader(in));
@@ -16,9 +16,9 @@ class Receiver implements Runnable {
     public void run() {
         System.out.println("Receive thread started");
         while (!isDone) {
-            if (Thread.currentThread().isInterrupted())
-                close();
+            Thread.onSpinWait();
         }
+        System.out.println("here 2");
     }
 
     public void close() {

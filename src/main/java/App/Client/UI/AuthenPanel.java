@@ -1,5 +1,7 @@
 package App.Client.UI;
 
+import App.Client.Controller.Controller;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -9,14 +11,16 @@ import java.util.Objects;
 public class AuthenPanel extends JPanel {
     JFrame parent;
     JPanel prev;
+    Controller controller;
 
     JLabel label;
     JButton back;
     JPanel form;
 
-    public AuthenPanel(JFrame parent, JPanel prev) {
+    public AuthenPanel(JFrame parent, JPanel prev, Controller controller) {
         this.parent = parent;
         this.prev = prev;
+        this.controller = controller;
         this.label = new JLabel("");
         this.form = new JPanel();
         form.setLayout(new BoxLayout(form, BoxLayout.PAGE_AXIS));
@@ -105,6 +109,15 @@ public class AuthenPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     back.setEnabled(false);
+                    String username = usernameIn.getText();
+                    String password = passwordIn.getText();
+                    if (username.isEmpty() || password.isEmpty()) {
+                        JOptionPane.showMessageDialog(parent, "Username/password can not be empty", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    else {
+                        controller.login(username, password);
+                        //TODO enable back button
+                    }
                 }
             });
         }
