@@ -1,5 +1,7 @@
 package App.Server;
 
+import App.Server.Database.Database;
+
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -10,10 +12,12 @@ public class Server implements Runnable {
     private ArrayList<ConnectionHandler> clientList;
     private HashMap<String, Integer> clientHashMap;
     private boolean finish;
+    private Database db;
 
     public Server() {
         clientList = new ArrayList<>();
         clientHashMap = new HashMap<>();
+        db = new Database();
         finish = false;
     }
 
@@ -43,7 +47,7 @@ public class Server implements Runnable {
     void broadcast(String username) {
         for (ConnectionHandler client : clientList) {
             if (!username.equals(client.getUsername())) {
-                client.send("/online " + username); //TODO : implement user online (Client.java)
+                client.send("/online|" + username); //TODO : implement user online (Client.java)
             }
         }
     }
@@ -55,7 +59,7 @@ public class Server implements Runnable {
         int toIndex = clientHashMap.get(to);
         String sender = clientList.get(fromIndex).getUsername();
 
-        clientList.get(toIndex).send("/receiveMessage " + sender + " " + message);
+        clientList.get(toIndex).send("/receiveMessage|" + sender + "|" + message);
     }
 
     void shutdown() throws IOException {
@@ -89,31 +93,43 @@ public class Server implements Runnable {
                 //Login/signup
                 while (true) {
                     String loginMsg = receiver.readLine();
-                    String[] loginInfo = loginMsg.split(" ");
+                    String[] loginInfo = loginMsg.split("\\|");
 
                     if (loginInfo.length != 3) {
-                        send("/fail login info is missing");
+                        send("/fail|login info is missing");
+                        continue;
                     }
 
                     if (loginMsg.startsWith("/login")) {
-                        // TODO: implement login
-
-                        this.username = loginInfo[1];
-                        setOnline(username, index);
-                        send("/success");
-                        System.out.println(username + " Logged in, port: " + socket.getPort());
-                        break;
+                        if (db.login(loginInfo[1].trim(), loginInfo[2].trim())) {
+                            this.username = loginInfo[1];
+                            setOnline(username, index);
+                            send("/success");
+                            System.out.println(username + " Logged in, port: " + socket.getPort());
+                            break;
+                        }
+                        else {
+                            send("/fail|username or password is incorrect");
+                            continue;
+                        }
                     }
                     else if (loginMsg.startsWith("/signup")) {
-                        // TODO: implement sign up
-
-                        this.username = loginInfo[1];
-                        setOnline(username,index);
-                        send("/success");
-                        System.out.println(username + " successfully registered, port: " + socket.getPort());
-                        break;
+                        if (!db.usernameCheck(loginInfo[1])) {
+                            send("/fail|username is already taken");
+                            continue;
+                        }
+                        if (db.register(loginInfo[1], loginInfo[2])) {
+                            this.username = loginInfo[1];
+                            setOnline(username,index);
+                            send("/success");
+                            System.out.println(username + " successfully registered, port: " + socket.getPort());
+                            continue;
+                        }
+                        else {
+                            send("/fail|some errors happened");
+                            continue;
+                        }
                     }
-                    send("/fail error");
                 }
 
                 String receivedMessage;
@@ -126,7 +142,7 @@ public class Server implements Runnable {
                         break;
                     }
                     else if (receivedMessage.startsWith("/sendMessage")) {
-                        String[] splitMessage =  receivedMessage.split(" ");
+                        String[] splitMessage =  receivedMessage.split("\\|");
 
                         if (splitMessage.length != 4) {
                             continue;
