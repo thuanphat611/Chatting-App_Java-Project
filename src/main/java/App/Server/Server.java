@@ -41,13 +41,19 @@ public class Server implements Runnable {
 
     void setOnline(String username, int index) {
         clientHashMap.put(username, index);
+        broadcast("/online", username);
+    }
+
+    void setOffline(String username, int index) {
+        clientHashMap.remove(username);
+        broadcast("/offline", username);
     }
 
     //announce to all current clients that user abc is online
-    void broadcast(String username) {
+    void broadcast(String announcement, String username) {
         for (ConnectionHandler client : clientList) {
             if (!username.equals(client.getUsername())) {
-                client.send("/online|" + username); //TODO : implement user online (Client.java)
+                client.send(announcement + "|" + username); //TODO : implement user online (Client.java)
             }
         }
     }
@@ -75,11 +81,12 @@ public class Server implements Runnable {
         private Socket socket;
         private BufferedReader receiver;
         private BufferedWriter sender;
-        private int index; //index in clientList of server
+        private final int index; //index in clientList of server
 
         public ConnectionHandler(Socket client, int index) {
             this.socket = client;
             this.index = index;
+            username = "";
         }
 
         @Override
@@ -90,73 +97,65 @@ public class Server implements Runnable {
 
                 System.out.println("Get connection from " + socket.getPort() + "(local)");
 
-                //Login/signup
-                while (true) {
-                    String loginMsg = receiver.readLine();
-                    System.out.println("Login stage: " + loginMsg);
-                    String[] loginInfo = loginMsg.split("\\|");
-
-                    if (loginInfo.length != 3) {
-                        send("/fail|login info is missing");
-                        continue;
-                    }
-
-                    if (loginMsg.startsWith("/login")) {
-                        if (db.login(loginInfo[1].trim(), loginInfo[2].trim())) {
-                            this.username = loginInfo[1];
-                            setOnline(username, index);
-                            send("/success");
-                            System.out.println(username + " Logged in, port: " + socket.getPort());
-                            break;
-                        }
-                        else {
-                            send("/fail|username or password is incorrect");
-                            continue;
-                        }
-                    }
-                    else if (loginMsg.startsWith("/signup")) {
-                        if (!db.usernameCheck(loginInfo[1])) {
-                            send("/fail|username is already taken");
-                            continue;
-                        }
-                        if (db.register(loginInfo[1], loginInfo[2])) {
-                            this.username = loginInfo[1];
-                            setOnline(username,index);
-                            send("/success");
-                            System.out.println(username + " successfully registered, port: " + socket.getPort());
-                            continue;
-                        }
-                        else {
-                            send("/fail|some errors happened");
-                            continue;
-                        }
-                    }
-                }
-
                 String receivedMessage;
+
                 do {
                     receivedMessage = receiver.readLine();
-                    System.out.println("Normal stage: "+ receivedMessage);
+                    String[] splitMsg = receivedMessage.split("\\|");
+
+                    System.out.println(socket.getPort() + " client: "+ receivedMessage);
                     if (receivedMessage.startsWith("/quit")) {
-                        // TODO: implement client quit
-                        send("/quit");
                         quit();
                         break;
                     }
+                    else if (receivedMessage.startsWith("/login")) {
+                        if (splitMsg.length != 3) {
+                            send("/fail|Login information is missing");
+                            continue;
+                        }
+                        if (!username.isEmpty())
+                            continue;
+                        if (db.login(splitMsg[1].trim(), splitMsg[2].trim())) {
+                            this.username = splitMsg[1];
+                            setOnline(username, index);
+                            send("/loginSuccess" + "|" + username);
+                            System.out.println(username + " Logged in, port: " + socket.getPort());
+                        }
+                        else {
+                            send("/fail|Username or password is incorrect");
+                        }
+                    }
+                    else if (receivedMessage.startsWith("/signup")) {
+                        if (splitMsg.length != 3) {
+                            send("/fail|Register information is missing");
+                            continue;
+                        }
+                        if (!db.usernameCheck(splitMsg[1])) {
+                            send("/fail|Username is already taken");
+                            continue;
+                        }
+                        if (db.register(splitMsg[1], splitMsg[2])) {
+                            send("/registerSuccess");
+                            System.out.println(username + " successfully registered, port: " + socket.getPort());
+                        }
+                        else {
+                            send("/fail|Some errors happened");
+                        }
+                    }
                     else if (receivedMessage.startsWith("/sendMessage")) {
-                        String[] splitMessage =  receivedMessage.split("\\|");
 
-                        if (splitMessage.length != 4) {
+                        if (splitMsg.length != 4) {
                             continue;
                         }
 
-                        forwardMessage(splitMessage[1], splitMessage[2], splitMessage[3]);
+                        forwardMessage(splitMsg[1], splitMsg[2], splitMsg[3]);
                     }
                     else if (receivedMessage.startsWith("/SendGroupMessage")) {
                         //TODO: implement group chatting
                     }
                 }
                 while (true);
+                System.out.println("Client " + socket.getPort() + " has disconnected");
             }
            catch (Exception e) {
                 System.out.println("Client " + socket.getPort() + " has disconnected");
@@ -177,9 +176,15 @@ public class Server implements Runnable {
             return username;
         }
 
-        void quit() throws IOException {
-            if (!socket.isClosed())
-                socket.close();
+        void quit() {
+            try {
+                sender.close();
+                receiver.close();
+                if (!socket.isClosed())
+                    socket.close();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
