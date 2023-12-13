@@ -115,9 +115,12 @@ public class AuthenPanel extends JPanel {
                         JOptionPane.showMessageDialog(parent, "Username/password can not be empty", "Error", JOptionPane.INFORMATION_MESSAGE);
                     }
                     else {
-                        controller.login(username, password);
-                        //TODO enable back button
+                        boolean result =  controller.login(username, password);
+                        if (!result) {
+                            JOptionPane.showMessageDialog(parent, "Error sending message to server", "Error", JOptionPane.INFORMATION_MESSAGE);
+                        }
                     }
+                    back.setEnabled(true);
                 }
             });
         }

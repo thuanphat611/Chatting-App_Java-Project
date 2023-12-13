@@ -12,6 +12,8 @@ public class Client extends JFrame {
         setDefaultLookAndFeelDecorated(true);
 
         Controller controller = new Controller();
+        Thread conThread = new Thread(controller);
+        conThread.start();
         JPanel newContentPane = new HomePanel(this, controller);
 
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

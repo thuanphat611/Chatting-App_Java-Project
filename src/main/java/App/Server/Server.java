@@ -93,6 +93,7 @@ public class Server implements Runnable {
                 //Login/signup
                 while (true) {
                     String loginMsg = receiver.readLine();
+                    System.out.println("Login stage: " + loginMsg);
                     String[] loginInfo = loginMsg.split("\\|");
 
                     if (loginInfo.length != 3) {
@@ -135,6 +136,7 @@ public class Server implements Runnable {
                 String receivedMessage;
                 do {
                     receivedMessage = receiver.readLine();
+                    System.out.println("Normal stage: "+ receivedMessage);
                     if (receivedMessage.startsWith("/quit")) {
                         // TODO: implement client quit
                         send("/quit");
@@ -164,6 +166,7 @@ public class Server implements Runnable {
         public void send(String message) {
             try {
                 sender.write(message);
+                sender.newLine();
                 sender.flush();
             } catch (Exception e) {
                 System.out.println(e.getMessage());
