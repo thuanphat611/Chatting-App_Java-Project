@@ -90,7 +90,8 @@ public class AuthenPanel extends JPanel {
             passwordWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
             JLabel passwordLbl = new JLabel("Password");
             passwordWrap.add(passwordLbl);
-            JTextField passwordIn = new JTextField();
+            JPasswordField passwordIn = new JPasswordField();
+            passwordIn.setEchoChar('*');
 
             JPanel submitWrap = new JPanel();
             submitWrap.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -110,7 +111,7 @@ public class AuthenPanel extends JPanel {
                 public void actionPerformed(ActionEvent e) {
                     back.setEnabled(false);
                     String username = usernameIn.getText();
-                    String password = passwordIn.getText();
+                    String password = new String(passwordIn.getPassword());
                     if (username.isEmpty() || password.isEmpty()) {
                         JOptionPane.showMessageDialog(parent, "Username/password can not be empty", "Error", JOptionPane.INFORMATION_MESSAGE);
                     }
@@ -141,12 +142,14 @@ public class AuthenPanel extends JPanel {
             passwordWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
             JLabel passwordLbl = new JLabel("Password");
             passwordWrap.add(passwordLbl);
-            JTextField passwordIn = new JTextField();
+            JPasswordField passwordIn = new JPasswordField();
+            passwordIn.setEchoChar('*');
             JPanel confirmPasswordWrap = new JPanel();
             confirmPasswordWrap.setLayout(new FlowLayout(FlowLayout.LEFT));
             JLabel confirmPasswordLbl = new JLabel("Confirm password");
             confirmPasswordWrap.add(confirmPasswordLbl);
-            JTextField confirmPasswordIn = new JTextField();
+            JPasswordField confirmPasswordIn = new JPasswordField();
+            confirmPasswordIn.setEchoChar('*');
 
             JPanel submitWrap = new JPanel();
             submitWrap.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -168,7 +171,34 @@ public class AuthenPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     back.setEnabled(false);
-                    //TODO: enable back button
+                    String username = usernameIn.getText();
+                    String password = new String(passwordIn.getPassword());
+                    String confirmPassword = new String(confirmPasswordIn.getPassword());
+
+                    if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                        JOptionPane.showMessageDialog(parent, "Some fields is missing", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    else if (username.contains(" ") || password.contains(" ")) {
+                        JOptionPane.showMessageDialog(parent, "Username and password can not contain space", "Error", JOptionPane.INFORMATION_MESSAGE);
+                        usernameIn.setText("");
+                        passwordIn.setText("");
+                        confirmPasswordIn.setText("");
+                    }
+                    else if (!password.equals(confirmPassword)) {
+                        JOptionPane.showMessageDialog(parent, "Confirm password is different from password", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    else if (username.length() < 4) {
+                        JOptionPane.showMessageDialog(parent, "Username must be at least 4 characters", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    else if (password.length() < 8) {
+                        JOptionPane.showMessageDialog(parent, "Password must be at least 8 characters", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        boolean result =  controller.register(username, password);
+                        if (!result) {
+                            JOptionPane.showMessageDialog(parent, "Error sending message to server", "Error", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                    back.setEnabled(true);
                 }
             });
         }

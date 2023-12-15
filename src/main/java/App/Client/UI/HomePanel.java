@@ -13,6 +13,7 @@ public class HomePanel extends JPanel {
     public HomePanel(JFrame parent, Controller controller) {
         this.parent = parent;
         this.controller = controller;
+        controller.setHomePanel(this);
 
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(400, 300));

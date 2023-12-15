@@ -70,6 +70,7 @@ public class Server implements Runnable {
 
     void shutdown() throws IOException {
         finish = true;
+        db.close();
         for (ConnectionHandler client : clientList)
             client.quit();
         if (!server.isClosed())
@@ -102,13 +103,14 @@ public class Server implements Runnable {
                 do {
                     receivedMessage = receiver.readLine();
                     String[] splitMsg = receivedMessage.split("\\|");
+                    String header = splitMsg[0];
 
                     System.out.println(socket.getPort() + " client: "+ receivedMessage);
-                    if (receivedMessage.startsWith("/quit")) {
+                    if (header.equals("/quit")) {
                         quit();
                         break;
                     }
-                    else if (receivedMessage.startsWith("/login")) {
+                    else if (header.equals("/login")) {
                         if (splitMsg.length != 3) {
                             send("/fail|Login information is missing");
                             continue;
@@ -125,24 +127,28 @@ public class Server implements Runnable {
                             send("/fail|Username or password is incorrect");
                         }
                     }
-                    else if (receivedMessage.startsWith("/signup")) {
+                    else if (header.equals("/register")) {
+                        System.out.println("register called");
                         if (splitMsg.length != 3) {
                             send("/fail|Register information is missing");
                             continue;
                         }
                         if (!db.usernameCheck(splitMsg[1])) {
+                            System.out.println("duplicate username");
                             send("/fail|Username is already taken");
                             continue;
                         }
                         if (db.register(splitMsg[1], splitMsg[2])) {
+                            System.out.println("register success");
                             send("/registerSuccess");
-                            System.out.println(username + " successfully registered, port: " + socket.getPort());
+                            System.out.println("Account " + splitMsg[1] + " successfully registered, port: " + socket.getPort());
                         }
                         else {
+                            System.out.println("register fail");
                             send("/fail|Some errors happened");
                         }
                     }
-                    else if (receivedMessage.startsWith("/sendMessage")) {
+                    else if (header.equals("/sendMessage")) {
 
                         if (splitMsg.length != 4) {
                             continue;
@@ -150,7 +156,7 @@ public class Server implements Runnable {
 
                         forwardMessage(splitMsg[1], splitMsg[2], splitMsg[3]);
                     }
-                    else if (receivedMessage.startsWith("/SendGroupMessage")) {
+                    else if (header.equals("/SendGroupMessage")) {
                         //TODO: implement group chatting
                     }
                 }

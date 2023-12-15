@@ -29,6 +29,14 @@ public class Database {
         }
     }
 
+    public void close() {
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public boolean usernameCheck(String username) {
         boolean result = false;
         try {

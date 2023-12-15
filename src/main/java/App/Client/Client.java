@@ -11,11 +11,11 @@ public class Client extends JFrame {
         setTitle("Chatting App");
         setDefaultLookAndFeelDecorated(true);
 
-        Controller controller = new Controller();
+        Controller controller = new Controller(this);
         Thread conThread = new Thread(controller);
         conThread.start();
-//        JPanel newContentPane = new HomePanel(this, controller);
-        JPanel newContentPane = new BoardPanel(this, controller, "Phat");
+        JPanel newContentPane = new HomePanel(this, controller);
+//        JPanel newContentPane = new BoardPanel(this, controller, "Phat");
 
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(new WindowAdapter() {

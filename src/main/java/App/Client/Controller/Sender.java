@@ -4,11 +4,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 
 public class Sender implements Runnable {
+    private Controller controller;
     private BufferedWriter bw;
     private volatile boolean isDone;
-    public Sender(BufferedWriter out) {
+    public Sender(BufferedWriter out, Controller controller) {
         isDone = false;
         bw = out;
+        this.controller = controller;
     }
     @Override
     public void run() {
