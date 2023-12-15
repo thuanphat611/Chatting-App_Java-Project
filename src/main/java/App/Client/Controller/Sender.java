@@ -16,9 +16,9 @@ public class Sender implements Runnable {
     public void run() {
         System.out.println("Send thread started");
         while (!isDone) {
-//            Thread.onSpinWait();
+            //wait until controller call its methods
         }
-        System.out.println("Send thread closed");//TODO remove here 1
+        System.out.println("Send thread closed");
     }
 
     public void close() {

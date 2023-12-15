@@ -148,6 +148,9 @@ public class Server implements Runnable {
                             send("/fail|Some errors happened");
                         }
                     }
+                    else if (header.equals("/logout")) {
+//TODO implement logout request with clientList, clientHashmap, when user logout index in list change so i should have appropriate method
+                    }
                     else if (header.equals("/sendMessage")) {
 
                         if (splitMsg.length != 4) {
@@ -168,12 +171,30 @@ public class Server implements Runnable {
            }
         }
 
-        public void send(String message) {
+        public  void sendOnlineList() {//send list of users that currently online
+            StringBuilder message = new StringBuilder("/onlineList");
+            int count = 0;
+            for (String username : clientHashMap.keySet()) {
+                message.append("|").append(username);
+                count++;
+                if (count == 200) { //send 200 username per message
+                    send(message.toString());
+                    count = 0;
+                }
+            }
+            //send the remaining username
+            if (count != 0)
+                send(message.toString());
+        }
+        //TODO implement getGroup()
+
+        public void send(String message) {//send a message to user
             try {
                 sender.write(message);
                 sender.newLine();
                 sender.flush();
             } catch (Exception e) {
+                System.out.print("Send message to client " + socket.getPort() + " error:");
                 System.out.println(e.getMessage());
             }
         }

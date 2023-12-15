@@ -40,7 +40,7 @@ public class Receiver implements Runnable {
         catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        System.out.println("Receive thread closed"); //TODO remove here 2
+        System.out.println("Receive thread closed");
     }
 
     public void close() {

@@ -42,6 +42,7 @@ public class Controller implements Runnable {
     }
 
     public void close() {
+        sendThread.sendMessage("/quit");
         try {
             sendThread.close();
             receiveThread.close();
