@@ -31,32 +31,34 @@ public class Server implements Runnable {
                 Socket client = server.accept();
                 ConnectionHandler handler = new ConnectionHandler(client, clientList.size());
                 Thread child = new Thread(handler);
+
                 child.start();
                 clientList.add(handler);
             }
         } catch (Exception e) {
+            shutdown();
             System.out.println(e.getMessage());
         }
     }
 
-    void setOnline(String username, int index) {
-        clientHashMap.put(username, index);
-        broadcast("/online", username);
-    }
+//    void setOnline(String username, int index) {
+//        clientHashMap.put(username, index);
+//        broadcast("/online", username);
+//    }
 
-    void setOffline(String username, int index) {
-        clientHashMap.remove(username);
-        broadcast("/offline", username);
-    }
+//    void setOffline(String username, int index) {
+//        clientHashMap.remove(username);
+//        broadcast("/offline", username);
+//    }
 
     //announce to all current clients that user abc is online
-    void broadcast(String announcement, String username) {
-        for (ConnectionHandler client : clientList) {
-            if (!username.equals(client.getUsername())) {
-                client.send(announcement + "|" + username); //TODO : implement user online (Client.java)
-            }
-        }
-    }
+//    void broadcast(String announcement, String username) {
+//        for (ConnectionHandler client : clientList) {
+//            if (!username.equals(client.getUsername())) {
+//                client.send(announcement + "|" + username);
+//            }
+//        }
+//    }
 
     void forwardMessage(String from, String to, String message) {
         if (clientHashMap.get(from) == null || clientHashMap.get(to) == null)
@@ -68,13 +70,17 @@ public class Server implements Runnable {
         clientList.get(toIndex).send("/receiveMessage|" + sender + "|" + message);
     }
 
-    void shutdown() throws IOException {
+    void shutdown() {
         finish = true;
         db.close();
         for (ConnectionHandler client : clientList)
             client.quit();
-        if (!server.isClosed())
-            server.close();
+        try {
+            if (!server.isClosed())
+                server.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     class ConnectionHandler implements Runnable {
@@ -119,7 +125,7 @@ public class Server implements Runnable {
                             continue;
                         if (db.login(splitMsg[1].trim(), splitMsg[2].trim())) {
                             this.username = splitMsg[1];
-                            setOnline(username, index);
+                            clientHashMap.put(username, index);
                             send("/loginSuccess" + "|" + username);
                             System.out.println(username + " Logged in, port: " + socket.getPort());
                         }
@@ -149,14 +155,18 @@ public class Server implements Runnable {
                         }
                     }
                     else if (header.equals("/logout")) {
-//TODO implement logout request with clientList, clientHashmap, when user logout index in list change so i should have appropriate method
+                        if (this.username.isEmpty())
+                            continue;
+
+                        clientHashMap.remove(username); // TODO test logout
+                        this.username = "";
                     }
                     else if (header.equals("/sendMessage")) {
 
                         if (splitMsg.length != 4) {
                             continue;
                         }
-
+                        //TODO implement save to history
                         forwardMessage(splitMsg[1], splitMsg[2], splitMsg[3]);
                     }
                     else if (header.equals("/SendGroupMessage")) {
