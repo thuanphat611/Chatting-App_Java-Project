@@ -187,11 +187,11 @@ public class AuthenPanel extends JPanel {
                     else if (!password.equals(confirmPassword)) {
                         JOptionPane.showMessageDialog(parent, "Confirm password is different from password", "Error", JOptionPane.INFORMATION_MESSAGE);
                     }
-                    else if (username.length() < 4) {
-                        JOptionPane.showMessageDialog(parent, "Username must be at least 4 characters", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    else if (username.length() < 4 || username.length() > 30) {
+                        JOptionPane.showMessageDialog(parent, "Username must be at least 4 characters and can not exceed 30 characters", "Error", JOptionPane.INFORMATION_MESSAGE);
                     }
-                    else if (password.length() < 8) {
-                        JOptionPane.showMessageDialog(parent, "Password must be at least 8 characters", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    else if (password.length() < 8 || password.length() > 30) {
+                        JOptionPane.showMessageDialog(parent, "Password must be at least 8 characters and can not exceed 30 characters", "Error", JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         boolean result =  controller.register(username, password);
                         if (!result) {

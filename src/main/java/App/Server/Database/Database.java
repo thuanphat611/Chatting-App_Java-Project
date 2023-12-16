@@ -13,6 +13,8 @@ public class Database {
     private PreparedStatement usernameCheckStmt;
     private PreparedStatement loginStmt;
     private  PreparedStatement registerStmt;
+    private PreparedStatement groupNameCheckStmt;
+    private PreparedStatement createGroupStmt;
 
     public Database() {
         conn = null;
@@ -24,6 +26,9 @@ public class Database {
             usernameCheckStmt = conn.prepareStatement("SELECT * FROM ACCOUNTS WHERE USERNAME = ?");
             loginStmt = conn.prepareStatement("SELECT * FROM ACCOUNTS WHERE USERNAME = ? AND PASSWORD = ?");
             registerStmt = conn.prepareStatement("INSERT ACCOUNTS (USERNAME, PASSWORD) VALUES (?, ?)");
+            groupNameCheckStmt = conn.prepareStatement("SELECT * FROM GROUPS WHERE OWNER = ? AND GROUP_NAME = ?");
+            createGroupStmt = conn.prepareStatement("INSERT GROUPS (GROUP_NAME, OWNER) VALUES (?, ?)");
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -49,6 +54,36 @@ public class Database {
             System.out.println(e.getMessage());
         }
         return result;
+    }
+
+    public boolean groupNameCheck(String username, String groupName) {
+        boolean result = false;
+        try {
+            groupNameCheckStmt.setString(1, username);
+            groupNameCheckStmt.setString(2, groupName);
+            ResultSet rs = groupNameCheckStmt.executeQuery();
+            if (!rs.next()) {
+                result = true;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
+
+    public boolean createGroup(String username, String groupName) {
+        if (!groupNameCheck(username, groupName)) {
+            return false;
+        }
+        try {
+            createGroupStmt.setString(1, groupName);
+            createGroupStmt.setString(2, username);
+            createGroupStmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     public boolean login(String username, String password) {
@@ -80,8 +115,12 @@ public class Database {
         }
         return true;
     }
+
+    //test Database's method
     public static void main(String[] args) {
         Database db1 = new Database();
-        System.out.println(db1.register("admin", "123456"));
+//        System.out.println(db1.register("admin", "123456"));
+//        db1.createGroup("admin", "test group");
+//        System.out.println(db1.groupNameCheck("admin", "test group"));
     }
 }
