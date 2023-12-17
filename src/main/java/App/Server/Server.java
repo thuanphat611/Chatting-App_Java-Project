@@ -185,6 +185,7 @@ public class Server implements Runnable {
                         if (this.username.isEmpty())
                             continue;
 
+                        System.out.println(username + " logged out");
                         clientHashMap.remove(username); // TODO test logout
                         this.username = "";
                     }

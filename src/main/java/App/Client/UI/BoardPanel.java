@@ -100,6 +100,13 @@ public class BoardPanel extends JPanel {
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
         if (this.chatList != null)
             refresh();
+
+        logout.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.logout();
+            }
+        });
     }
 
     public void refresh() {

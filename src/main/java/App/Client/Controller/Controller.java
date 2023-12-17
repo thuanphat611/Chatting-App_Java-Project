@@ -91,4 +91,15 @@ public class Controller implements Runnable {
             return false;
         return sendThread.sendMessage("/register|" + username + "|" + password);
     }
+
+    public void logout() {
+        if (this.username.isEmpty())
+            return;
+        sendThread.sendMessage("/logout");
+        this.username = "";
+        HomePanel home = new HomePanel(parent, this);
+        parent.setContentPane(home);
+        parent.pack();
+        parent.validate();
+    }
 }
