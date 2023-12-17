@@ -188,6 +188,12 @@ public class Server implements Runnable {
                         System.out.println(username + " logged out");
                         clientHashMap.remove(username); // TODO test logout
                         this.username = "";
+                    } else if (header.equals("/refresh")) {
+                        send("/refresh");
+                        if (!this.username.isEmpty())
+                            sendGroupList(username);
+                        sendOnlineList();
+                        send("/end");
                     }
                     else if (header.equals("/sendMessage")) {
 

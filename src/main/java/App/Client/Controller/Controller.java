@@ -15,10 +15,12 @@ public class Controller implements Runnable {
     private Sender sendThread;
     private Receiver receiveThread;
     private JFrame parent;
+    private BoardPanel board;
 
     public Controller(JFrame parent) {
         this.parent = parent;
         username = "";
+        board = null;
     }
 
     @Override
@@ -66,7 +68,7 @@ public class Controller implements Runnable {
     }
 
     public void createBoardPanel(ArrayList<String[]> chatList) {
-        BoardPanel board = new BoardPanel(parent, this, username, chatList);
+        board = new BoardPanel(parent, this, username, chatList);
         parent.setContentPane(board);
         parent.pack();
         parent.validate();
@@ -99,6 +101,18 @@ public class Controller implements Runnable {
         this.username = "";
         HomePanel home = new HomePanel(parent, this);
         parent.setContentPane(home);
+        parent.pack();
+        parent.validate();
+    }
+
+    public void refreshRequest() {
+        sendThread.sendMessage("/refresh");
+    }
+
+    public void updateBoard(ArrayList<String[]> chatList) {
+        if (board == null)
+            return;
+        board.setChatList(chatList);
         parent.pack();
         parent.validate();
     }

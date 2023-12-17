@@ -107,6 +107,12 @@ public class BoardPanel extends JPanel {
                 controller.logout();
             }
         });
+        refresh.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.refreshRequest();
+            }
+        });
     }
 
     public void refresh() {

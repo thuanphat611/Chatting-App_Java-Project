@@ -62,6 +62,34 @@ public class Receiver implements Runnable {
                 }
                 else if (header.equals("/fail"))
                     JOptionPane.showMessageDialog(parent, splitMsg[1], "Failed", JOptionPane.INFORMATION_MESSAGE);
+                else if (header.equals("/refresh")) {
+                    ArrayList<String[]> chatList = new ArrayList<>();
+                    while (true) {
+                        String listMsg = br.readLine();
+                        System.out.println("Receiver: " + listMsg);
+                        String[] splitList = listMsg.split("\\|");
+                        String listHeader = splitList[0];
+
+                        if (listHeader.equals("/end"))
+                            break;
+                        else if (listHeader.equals("/groupList")) {
+                            for (int i = 1; i < splitList.length; i++) {
+                                String[] chatItem = new String[2];
+                                chatItem[0] = splitList[i];
+                                chatItem[1] = "group";
+                                chatList.add(chatItem);
+                            }
+                        } else if (listHeader.equals("/onlineList")) {
+                            for (int i = 1; i < splitList.length; i++) {
+                                String[] chatItem = new String[2];
+                                chatItem[0] = splitList[i];
+                                chatItem[1] = "user";
+                                chatList.add(chatItem);
+                            }
+                        }
+                    }
+                    controller.updateBoard(chatList);
+                }
             }
         }
         catch (Exception e) {
