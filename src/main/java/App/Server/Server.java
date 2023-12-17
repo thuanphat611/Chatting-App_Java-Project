@@ -207,7 +207,7 @@ public class Server implements Runnable {
                         //TODO: implement group chatting
                     }
                 }
-                while (true);
+                while (true); //TODO implement change password if have enough time
                 System.out.println("Client " + socket.getPort() + " has disconnected");
             }
            catch (Exception e) {

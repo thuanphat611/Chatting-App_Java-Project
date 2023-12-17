@@ -36,8 +36,9 @@ public class BoardPanel extends JPanel {
         JTextField searchbar = new JTextField();
         JButton searchBtn = new JButton("Search");
         searchbar.setPreferredSize(new Dimension(400, 25));
-        //TODO make searchbar lose focus
         //searchbar placeholder
+        searchbar.setForeground(Color.GRAY);
+        searchbar.setText("Search for user or group");
         searchbar.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
