@@ -6,17 +6,20 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class Server implements Runnable {
     private ServerSocket server;
     private ArrayList<ConnectionHandler> clientList;
     private HashMap<String, Integer> clientHashMap;
+    private ArrayList<Integer> freeSpace;
     private boolean finish;
     private Database db;
 
     public Server() {
         clientList = new ArrayList<>();
         clientHashMap = new HashMap<>();
+        freeSpace =  new ArrayList<>();
         db = new Database();
         finish = false;
     }
@@ -29,11 +32,23 @@ public class Server implements Runnable {
             while (!finish)
             {
                 Socket client = server.accept();
-                ConnectionHandler handler = new ConnectionHandler(client, clientList.size());
-                Thread child = new Thread(handler);
+                if (freeSpace.isEmpty()) {
+                    ConnectionHandler handler = new ConnectionHandler(client, clientList.size());
+                    Thread child = new Thread(handler);
 
-                child.start();
-                clientList.add(handler);
+                    child.start();
+                    clientList.add(handler);
+                }
+                else {
+                    int handlerIndex = freeSpace.get(0);
+                    freeSpace.remove(0);
+
+                    ConnectionHandler handler = new ConnectionHandler(client, handlerIndex);
+                    Thread child = new Thread(handler);
+
+                    child.start();
+                    clientList.set(handlerIndex, handler);
+                }
             }
         } catch (Exception e) {
             shutdown();
@@ -74,7 +89,8 @@ public class Server implements Runnable {
         finish = true;
         db.close();
         for (ConnectionHandler client : clientList)
-            client.quit();
+            if (client != null)
+                client.quit();
         try {
             if (!server.isClosed())
                 server.close();
@@ -113,6 +129,10 @@ public class Server implements Runnable {
 
                     System.out.println(socket.getPort() + " client: "+ receivedMessage);
                     if (header.equals("/quit")) {
+                        if (!this.username.isEmpty())
+                            clientHashMap.remove(username);
+                        freeSpace.add(index);
+                        clientList.set(index, null);
                         quit();
                         break;
                     }
@@ -123,11 +143,18 @@ public class Server implements Runnable {
                         }
                         if (!username.isEmpty())
                             continue;
+                        if (clientHashMap.get(splitMsg[1]) != null) {
+                            send("/fail|This account has been logged in on another device");
+                            continue;
+                        }
                         if (db.login(splitMsg[1].trim(), splitMsg[2].trim())) {
                             this.username = splitMsg[1];
                             clientHashMap.put(username, index);
                             send("/loginSuccess" + "|" + username);
                             System.out.println(username + " Logged in, port: " + socket.getPort());
+                            sendGroupList(username);
+                            sendOnlineList();
+                            send("/end");
                         }
                         else {
                             send("/fail|Username or password is incorrect");
@@ -185,18 +212,42 @@ public class Server implements Runnable {
             StringBuilder message = new StringBuilder("/onlineList");
             int count = 0;
             for (String username : clientHashMap.keySet()) {
-                message.append("|").append(username);
-                count++;
+                if (!Objects.equals(username, this.username)) {
+                    message.append("|").append(username);
+                    count++;
+                }
                 if (count == 200) { //send 200 username per message
                     send(message.toString());
                     count = 0;
+                    message = new StringBuilder("/onlineList");
                 }
             }
             //send the remaining username
             if (count != 0)
                 send(message.toString());
         }
-        //TODO implement getGroup()
+
+        public void sendGroupList(String username) {
+            String[] groups = db.getGroups(username);
+            if (groups == null)
+                return;
+
+            StringBuilder message = new StringBuilder("/groupList");
+            int count = 0;
+
+            for (String group : groups) {
+                message.append("|").append(group);
+                count++;
+                if (count == 200) { //send 200 username per message
+                    send(message.toString());
+                    count = 0;
+                    message = new StringBuilder("/groupList");
+                }
+            }
+            //send the remaining username
+            if (count != 0)
+                send(message.toString());
+        }
 
         public void send(String message) {//send a message to user
             try {
