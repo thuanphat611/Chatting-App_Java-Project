@@ -19,6 +19,8 @@ public class Database {
     private PreparedStatement createGroupStmt;
     private  PreparedStatement addMemberStmt;
     private PreparedStatement getGroupStmt;
+    private PreparedStatement checkMsgIDStmt;
+    private PreparedStatement saveMsgStmt;
 
     public Database() {
         conn = null;
@@ -34,6 +36,8 @@ public class Database {
                 createGroupStmt = conn.prepareStatement("INSERT GROUPS (GROUP_NAME, OWNER) VALUES (?, ?)");
                 addMemberStmt = conn.prepareStatement("INSERT GROUP_MEMBERS (GROUP_NAME, OWNER, MEMBER_NAME) VALUES (?, ?, ?)");
                 getGroupStmt = conn.prepareStatement("SELECT * FROM GROUP_MEMBERS WHERE MEMBER_NAME = ?");
+                checkMsgIDStmt = conn.prepareStatement("SELECT * FROM CHAT_HISTORY WHERE ID = ?");
+                saveMsgStmt = conn.prepareStatement("INSERT CHAT_HISTORY (ID, SENDER, RECEIVER, CONTENT) VALUES (?, ?, ?, ?)");
             }
             else {
                 System.out.println("Database: error creating connection");
@@ -80,7 +84,7 @@ public class Database {
         return result;
     }
 
-    public boolean addMemerToGroup(String groupName, String owner, String memberName) {
+    public boolean addMemberToGroup(String groupName, String owner, String memberName) {
         if (groupNameCheck(owner, groupName)) { //check if group exists, true -> not exists
             return false;
         }
@@ -105,7 +109,7 @@ public class Database {
             createGroupStmt.setString(1, groupName);
             createGroupStmt.setString(2, username);
             createGroupStmt.executeUpdate();
-            addMemerToGroup(groupName,username, username);
+            addMemberToGroup(groupName,username, username);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             return false;
@@ -171,6 +175,36 @@ public class Database {
         return result;
     }
 
+    public boolean checkMsgID(String id) {
+        boolean result = false;
+        try {
+            checkMsgIDStmt.setString(1, id);
+            ResultSet rs = checkMsgIDStmt.executeQuery();
+            if (!rs.next()) {
+                result = true;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
+
+    public void saveMsgHistory(String id ,String sender, String receiver, String content) {
+        try {
+            if (!checkMsgID(id)) {
+                System.out.println("Can not save message history due to id duplication");
+                return;
+            }
+            saveMsgStmt.setString(1, id);
+            saveMsgStmt.setString(2, sender);
+            saveMsgStmt.setString(3, receiver);
+            saveMsgStmt.setString(4, content);
+            saveMsgStmt.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     //test Database's method
     public static void main(String[] args) {
         Database db1 = new Database();
@@ -180,6 +214,8 @@ public class Database {
 //        System.out.println(db1.register("admin", "123456"));
 //        db1.createGroup("admin", "test group");
 //        System.out.println(db1.groupNameCheck("admin", "test group"));
+//        db1.saveMsgHistory("admin_phatdz_001", "admin", "phat", "hello");
+//        System.out.println(db1.checkMsgID("admin_phatdz_001"));
     }
 }
 //TODO when leaving group, check if the group has no member. If true, delete the group
