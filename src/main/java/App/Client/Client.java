@@ -15,7 +15,6 @@ public class Client extends JFrame {
         Thread conThread = new Thread(controller);
         conThread.start();
         JPanel newContentPane = new HomePanel(this, controller);
-//        JPanel newContentPane = new BoardPanel(this, controller, "Phat");
 
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(new WindowAdapter() {

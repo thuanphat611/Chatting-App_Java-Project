@@ -13,29 +13,14 @@ public class BoardPanel extends JPanel {
     JPanel content;
     String username;
     ArrayList<String[]> chatList;
-    public BoardPanel(JFrame parent, Controller controller, String username) {
+    public BoardPanel(JFrame parent, Controller controller, String username, ArrayList<String[]> chatList) {
         this.parent = parent;
         this.controller = controller;
         this.username = username;
-
-        //TODO remove this chatList
-        this.chatList = new ArrayList<String[]>();
-        for (int i = 0; i < 10; i++) {
-            String name = "User" + i;
-            String type = "user";
-
-            if (i == 3) {
-                name = "Group" + i;
-                type = "group";
-            }
-            String[] temp = new String[2];
-            temp[0] = name;
-            temp[1] = type;
-            chatList.add(temp);
-        }
+        this.chatList = chatList;
 
         content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.PAGE_AXIS));
+        content.setLayout(new BorderLayout());
 
         setPreferredSize(new Dimension(600, 700));
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -56,7 +41,7 @@ public class BoardPanel extends JPanel {
         searchbar.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (searchbar.getText().equals("Search for user")) {
+                if (searchbar.getText().equals("Search for user or group")) {
                     searchbar.setText("");
                     searchbar.setForeground(Color.BLACK);
                 }
@@ -65,7 +50,7 @@ public class BoardPanel extends JPanel {
             public void focusLost(FocusEvent e) {
                 if (searchbar.getText().isEmpty()) {
                     searchbar.setForeground(Color.GRAY);
-                    searchbar.setText("Search for user");
+                    searchbar.setText("Search for user or group");
                 }
             }
         });
@@ -97,14 +82,14 @@ public class BoardPanel extends JPanel {
         JPanel btnGroup = new JPanel();
         btnGroup.setLayout(new BoxLayout(btnGroup, BoxLayout.LINE_AXIS));
         btnGroupWrap.add(btnGroup);
-        JButton quit = new JButton("Quit");
+        JButton refresh = new JButton("Refresh");
         JButton logout = new JButton("Logout");
         JButton createGroup = new JButton("Create group");
         btnGroup.add(createGroup);
         btnGroup.add(Box.createRigidArea(new Dimension(10, 0)));
-        btnGroup.add(logout);
+        btnGroup.add(refresh);
         btnGroup.add(Box.createRigidArea(new Dimension(10, 0)));
-        btnGroup.add(quit);
+        btnGroup.add(logout);
 
         footer.add(btnGroupWrap, BorderLayout.CENTER);
         wrapper.add(footer, BorderLayout.PAGE_END);
@@ -113,12 +98,14 @@ public class BoardPanel extends JPanel {
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
         verticalMargin.add(wrapper);
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
-
-        refresh();
+        if (this.chatList != null)
+            refresh();
     }
 
     public void refresh() {
         content.removeAll();
+        JPanel contentWrapper = new JPanel();
+        contentWrapper.setLayout(new BoxLayout(contentWrapper, BoxLayout.PAGE_AXIS));
         if (chatList.size() == 0) {
             JLabel noUser = new JLabel("There are no users online at the moment");
             JPanel noUserPnl = new JPanel();
@@ -163,8 +150,13 @@ public class BoardPanel extends JPanel {
             paddingX.add(Box.createRigidArea(new Dimension(5, 0)));
 
             JScrollPane chatWrap = new JScrollPane(paddingX);
-            content.add(chatWrap);
+            contentWrapper.add(chatWrap);
+            content.add(contentWrapper, BorderLayout.PAGE_START);
         }
     }
 
+    public void setChatList(ArrayList<String[]> list) {
+        this.chatList = list;
+        refresh();
+    }
 }

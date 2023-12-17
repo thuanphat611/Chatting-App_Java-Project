@@ -1,10 +1,12 @@
 package App.Client.Controller;
 
+import App.Client.UI.BoardPanel;
 import App.Client.UI.HomePanel;
 
 import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class Controller implements Runnable {
     private HomePanel home;
@@ -59,6 +61,13 @@ public class Controller implements Runnable {
 
     public void toHome() {
         parent.setContentPane(home);
+        parent.pack();
+        parent.validate();
+    }
+
+    public void createBoardPanel(ArrayList<String[]> chatList) {
+        BoardPanel board = new BoardPanel(parent, this, username, chatList);
+        parent.setContentPane(board);
         parent.pack();
         parent.validate();
     }
