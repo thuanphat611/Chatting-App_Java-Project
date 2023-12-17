@@ -1,6 +1,5 @@
 package App.Server.Database;
 
-import App.Client.Controller.Receiver;
 import com.microsoft.sqlserver.jdbc.SQLServerDriver;
 
 import java.sql.*;
@@ -21,6 +20,9 @@ public class Database {
     private PreparedStatement getGroupStmt;
     private PreparedStatement checkMsgIDStmt;
     private PreparedStatement saveMsgStmt;
+    private PreparedStatement leaveGroupStmt;
+    private PreparedStatement deleteGroupStmt;
+    private PreparedStatement groupCheckStmt;
 
     public Database() {
         conn = null;
@@ -38,6 +40,9 @@ public class Database {
                 getGroupStmt = conn.prepareStatement("SELECT * FROM GROUP_MEMBERS WHERE MEMBER_NAME = ?");
                 checkMsgIDStmt = conn.prepareStatement("SELECT * FROM CHAT_HISTORY WHERE ID = ?");
                 saveMsgStmt = conn.prepareStatement("INSERT CHAT_HISTORY (ID, SENDER, RECEIVER, CONTENT) VALUES (?, ?, ?, ?)");
+                leaveGroupStmt = conn.prepareStatement("DELETE GROUP_MEMBERS WHERE GROUP_NAME = ? AND OWNER = ? AND MEMBER_NAME = ?");
+                deleteGroupStmt = conn.prepareStatement("DELETE GROUPS WHERE GROUP_NAME = ? AND OWNER = ?");
+                groupCheckStmt = conn.prepareStatement("SELECT * FROM GROUPS GR, GROUP_MEMBERS GM WHERE GR.GROUP_NAME = GM.GROUP_NAME AND GR.OWNER = GM.OWNER AND GR.GROUP_NAME = ? AND GR.OWNER = ?");
             }
             else {
                 System.out.println("Database: error creating connection");
@@ -69,54 +74,6 @@ public class Database {
         return result;
     }
 
-    public boolean groupNameCheck(String username, String groupName) {
-        boolean result = false;
-        try {
-            groupNameCheckStmt.setString(1, username);
-            groupNameCheckStmt.setString(2, groupName);
-            ResultSet rs = groupNameCheckStmt.executeQuery();
-            if (!rs.next()) {
-                result = true;
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return result;
-    }
-
-    public boolean addMemberToGroup(String groupName, String owner, String memberName) {
-        if (groupNameCheck(owner, groupName)) { //check if group exists, true -> not exists
-            return false;
-        }
-        try {
-            addMemberStmt.setString(1, groupName);
-            addMemberStmt.setString(2, owner);
-            addMemberStmt.setString(3, memberName);
-            addMemberStmt.executeUpdate();
-        }
-        catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    public boolean createGroup(String username, String groupName) {
-        if (!groupNameCheck(username, groupName)) {
-            return false;
-        }
-        try {
-            createGroupStmt.setString(1, groupName);
-            createGroupStmt.setString(2, username);
-            createGroupStmt.executeUpdate();
-            addMemberToGroup(groupName,username, username);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
     public boolean login(String username, String password) {
         boolean result = false;
         try {
@@ -137,9 +94,55 @@ public class Database {
             return false;
         }
         try {
-           registerStmt.setString(1, username);
-           registerStmt.setString(2, password);
-           registerStmt.executeUpdate();
+            registerStmt.setString(1, username);
+            registerStmt.setString(2, password);
+            registerStmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public boolean groupNameCheck(String username, String groupName) {
+        boolean result = false;
+        try {
+            groupNameCheckStmt.setString(1, username);
+            groupNameCheckStmt.setString(2, groupName);
+            ResultSet rs = groupNameCheckStmt.executeQuery();
+            if (!rs.next()) {
+                result = true;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
+
+    public void addMemberToGroup(String groupName, String owner, String memberName) {
+        if (groupNameCheck(owner, groupName)) { //check if group exists, true -> not exists
+            return;
+        }
+        try {
+            addMemberStmt.setString(1, groupName);
+            addMemberStmt.setString(2, owner);
+            addMemberStmt.setString(3, memberName);
+            addMemberStmt.executeUpdate();
+        }
+        catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public boolean createGroup(String username, String groupName) {
+        if (!groupNameCheck(username, groupName)) {
+            return false;
+        }
+        try {
+            createGroupStmt.setString(1, groupName);
+            createGroupStmt.setString(2, username);
+            createGroupStmt.executeUpdate();
+            addMemberToGroup(groupName,username, username);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             return false;
@@ -167,12 +170,51 @@ public class Database {
             result = new String[groups.size()];
 
             for (int i = 0; i < groups.size(); i++)
-                result[i] = groups.get(i).toString();
+                result[i] = groups.get(i);
         }
         catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return result;
+    }
+
+    // check if the group has no member. If true, delete the group
+    void groupCheck(String groupName, String owner) {
+        try {
+            groupCheckStmt.setString(1, groupName);
+            groupCheckStmt.setString(2, owner);
+
+            ResultSet rs = groupCheckStmt.executeQuery();
+            if (!rs.next())
+                deleteGroup(groupName, owner);
+        }
+        catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void deleteGroup(String groupName, String owner) {
+        try {
+            deleteGroupStmt.setString(1, groupName);
+            deleteGroupStmt.setString(2, owner);
+            deleteGroupStmt.executeUpdate();
+        }
+        catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void leaveGroup(String groupName, String owner, String username) {
+        try {
+           leaveGroupStmt.setString(1, groupName);
+           leaveGroupStmt.setString(2, owner);
+           leaveGroupStmt.setString(3, username);
+           leaveGroupStmt.executeUpdate();
+           groupCheck(groupName, owner); // check if the group has no member. If true, delete the group
+        }
+        catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public boolean checkMsgID(String id) {
@@ -214,8 +256,11 @@ public class Database {
 //        System.out.println(db1.register("admin", "123456"));
 //        db1.createGroup("admin", "test group");
 //        System.out.println(db1.groupNameCheck("admin", "test group"));
-//        db1.saveMsgHistory("admin_phatdz_001", "admin", "phat", "hello");
-//        System.out.println(db1.checkMsgID("admin_phatdz_001"));
+//        db1.saveMsgHistory("admin_phat_001", "admin", "phat", "hello");
+//        System.out.println(db1.checkMsgID("admin_phat_001"));
+
+//        db1.leaveGroup("test group", "admin", "admin");
+//        db1.deleteGroup("test group", "admin");
+//        db1.groupCheck("test group", "admin");
     }
 }
-//TODO when leaving group, check if the group has no member. If true, delete the group
