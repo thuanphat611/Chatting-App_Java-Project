@@ -5,6 +5,7 @@ import App.Client.Controller.*;
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 
 public class Client extends JFrame {
     public void createAndShowGUI() {
@@ -15,7 +16,6 @@ public class Client extends JFrame {
         Thread conThread = new Thread(controller);
         conThread.start();
         JPanel newContentPane = new HomePanel(this, controller);
-
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(new WindowAdapter() {
             @Override
@@ -31,6 +31,9 @@ public class Client extends JFrame {
         this.setVisible(true);
     }
 
+    public void closeFrame() {
+        System.exit(0);
+    }
 
     public static void main(String[] args) {
         Client app = new Client();

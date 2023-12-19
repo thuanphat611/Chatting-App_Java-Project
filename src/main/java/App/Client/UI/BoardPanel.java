@@ -8,11 +8,11 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 public class BoardPanel extends JPanel {
-    JFrame parent;
-    Controller controller;
-    JPanel content;
-    String username;
-    ArrayList<String[]> chatList;
+    private JFrame parent;
+    private Controller controller;
+    private JPanel content;
+    private String username;
+    private ArrayList<String[]> chatList;
     public BoardPanel(JFrame parent, Controller controller, String username, ArrayList<String[]> chatList) {
         this.parent = parent;
         this.controller = controller;
@@ -166,6 +166,15 @@ public class BoardPanel extends JPanel {
             JScrollPane chatWrap = new JScrollPane(paddingX);
             contentWrapper.add(chatWrap);
             content.add(contentWrapper, BorderLayout.PAGE_START);
+
+            JPanel prev = this;
+            chatBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+//                    ArrayList<String[]> chatData = controller.getChatHistory(username, chat[0]);
+//                    ChatPanel chatPnl = new ChatPanel(parent, controller, username, chat[0], chatData, chat[1]);
+                }
+            });
         }
     }
 

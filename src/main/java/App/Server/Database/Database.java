@@ -18,7 +18,7 @@ public class Database {
     private PreparedStatement createGroupStmt;
     private  PreparedStatement addMemberStmt;
     private PreparedStatement getGroupStmt;
-    private PreparedStatement checkMsgIDStmt;
+    private PreparedStatement getMsgIDStmt;
     private PreparedStatement saveMsgStmt;
     private PreparedStatement leaveGroupStmt;
     private PreparedStatement deleteGroupStmt;
@@ -38,8 +38,8 @@ public class Database {
                 createGroupStmt = conn.prepareStatement("INSERT GROUPS (GROUP_NAME, OWNER) VALUES (?, ?)");
                 addMemberStmt = conn.prepareStatement("INSERT GROUP_MEMBERS (GROUP_NAME, OWNER, MEMBER_NAME) VALUES (?, ?, ?)");
                 getGroupStmt = conn.prepareStatement("SELECT * FROM GROUP_MEMBERS WHERE MEMBER_NAME = ?");
-                checkMsgIDStmt = conn.prepareStatement("SELECT * FROM CHAT_HISTORY WHERE ID = ?");
-                saveMsgStmt = conn.prepareStatement("INSERT CHAT_HISTORY (ID, SENDER, RECEIVER, CONTENT) VALUES (?, ?, ?, ?)");
+                getMsgIDStmt = conn.prepareStatement("SELECT * FROM CHAT_HISTORY WHERE (SENDER = ? AND RECEIVER = ?) OR (SENDER = ? AND RECEIVER = ?) ORDER BY ORDER_INDEX DESC");
+                saveMsgStmt = conn.prepareStatement("INSERT CHAT_HISTORY (ORDER_INDEX, SENDER, RECEIVER, CONTENT) VALUES (?, ?, ?, ?)");
                 leaveGroupStmt = conn.prepareStatement("DELETE GROUP_MEMBERS WHERE GROUP_NAME = ? AND OWNER = ? AND MEMBER_NAME = ?");
                 deleteGroupStmt = conn.prepareStatement("DELETE GROUPS WHERE GROUP_NAME = ? AND OWNER = ?");
                 groupCheckStmt = conn.prepareStatement("SELECT * FROM GROUPS GR, GROUP_MEMBERS GM WHERE GR.GROUP_NAME = GM.GROUP_NAME AND GR.OWNER = GM.OWNER AND GR.GROUP_NAME = ? AND GR.OWNER = ?");
@@ -217,27 +217,28 @@ public class Database {
         }
     }
 
-    public boolean checkMsgID(String id) {
-        boolean result = false;
+    public int getMsgID(String name1, String name2) {
         try {
-            checkMsgIDStmt.setString(1, id);
-            ResultSet rs = checkMsgIDStmt.executeQuery();
-            if (!rs.next()) {
-                result = true;
-            }
+            getMsgIDStmt.setString(1, name1);
+            getMsgIDStmt.setString(4, name1);
+            getMsgIDStmt.setString(2, name2);
+            getMsgIDStmt.setString(3, name2);
+            ResultSet rs = getMsgIDStmt.executeQuery();
+            if (!rs.next())
+                return 0;
+            else
+                return rs.getInt("ORDER_INDEX");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return result;
+        return -1;
     }
 
-    public void saveMsgHistory(String id ,String sender, String receiver, String content) {
+    public void saveMsgHistory(String sender, String receiver, String content) {
         try {
-            if (!checkMsgID(id)) {
-                System.out.println("Can not save message history due to id duplication");
-                return;
-            }
-            saveMsgStmt.setString(1, id);
+            int lastIndex = getMsgID(sender, receiver);
+            int id = lastIndex + 1;
+            saveMsgStmt.setInt(1, id);
             saveMsgStmt.setString(2, sender);
             saveMsgStmt.setString(3, receiver);
             saveMsgStmt.setString(4, content);
@@ -245,6 +246,26 @@ public class Database {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public ArrayList<String[]> getAllMessages(String sender, String receiver) {
+        ArrayList<String[]> result = new ArrayList<>();
+        try {
+            getMsgIDStmt.setString(1, sender);
+            getMsgIDStmt.setString(4, sender);
+            getMsgIDStmt.setString(2, receiver);
+            getMsgIDStmt.setString(3, receiver);
+            ResultSet rs = getMsgIDStmt.executeQuery();
+            while (rs.next()) {
+                String[] message = new String[2];
+                message[0] = rs.getString("SENDER");
+                message[1] = rs.getString("CONTENT");
+                result.add(message);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
     }
 
     //test Database's method
@@ -256,11 +277,15 @@ public class Database {
 //        System.out.println(db1.register("admin", "123456"));
 //        db1.createGroup("admin", "test group");
 //        System.out.println(db1.groupNameCheck("admin", "test group"));
-//        db1.saveMsgHistory("admin_phat_001", "admin", "phat", "hello");
+//        db1.saveMsgHistory("phat", "admin", "hello");
 //        System.out.println(db1.checkMsgID("admin_phat_001"));
 
 //        db1.leaveGroup("test group", "admin", "admin");
 //        db1.deleteGroup("test group", "admin");
 //        db1.groupCheck("test group", "admin");
+//        System.out.println(db1.getMsgID("admin", "phat"));
+//        ArrayList<String[]> result = db1.getAllMessages("phat", "admin");
+//        for (int i = 0; i < result.size(); i++)
+//            System.out.println(result.get(i)[0] + " " + result.get(i)[1]);
     }
 }

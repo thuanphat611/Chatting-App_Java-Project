@@ -1,5 +1,6 @@
 package App.Client.Controller;
 
+import App.Client.Client;
 import App.Client.UI.BoardPanel;
 import App.Client.UI.HomePanel;
 
@@ -14,10 +15,10 @@ public class Controller implements Runnable {
     private Socket socket;
     private Sender sendThread;
     private Receiver receiveThread;
-    private JFrame parent;
+    private Client parent;
     private BoardPanel board;
 
-    public Controller(JFrame parent) {
+    public Controller(Client parent) {
         this.parent = parent;
         username = "";
         board = null;
@@ -41,7 +42,9 @@ public class Controller implements Runnable {
             th1.start();
             th2.start();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
+            JOptionPane.showMessageDialog(parent, "Some error happened, please check if server is running", "Error", JOptionPane.INFORMATION_MESSAGE);
+            parent.closeFrame();
         }
     }
 
