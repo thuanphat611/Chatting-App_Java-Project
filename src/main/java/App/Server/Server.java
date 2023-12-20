@@ -1,5 +1,6 @@
 package App.Server;
 
+import App.Client.Controller.Sender;
 import App.Server.Database.Database;
 
 import java.io.*;
@@ -64,6 +65,17 @@ public class Server implements Runnable {
         String sender = clientList.get(fromIndex).getUsername();
 
         clientList.get(toIndex).send("/receiveMessage|" + sender + "|" + message);
+    }
+
+    public void forwardGroupMessage(String from, String owner, String groupName, String message) {
+        for (ConnectionHandler connectionHandler : clientList) {
+            if (connectionHandler.username.isEmpty())
+                continue;
+            if (connectionHandler.username.equals(from))
+                continue;
+            if (db.groupMemberCheck(groupName, owner, connectionHandler.username))
+                connectionHandler.send("/receiveGroupMessage|" + owner + " " + groupName + "|" + from + "|" + message);
+        }
     }
 
     void shutdown() {
@@ -167,9 +179,10 @@ public class Server implements Runnable {
                             continue;
 
                         System.out.println(username + " logged out");
-                        clientHashMap.remove(username); // TODO test logout
+                        clientHashMap.remove(username);
                         this.username = "";
-                    } else if (header.equals("/refresh")) {
+                    }
+                    else if (header.equals("/refresh")) {
                         send("/refresh");
                         if (!this.username.isEmpty())
                             sendGroupList(username);
@@ -184,8 +197,18 @@ public class Server implements Runnable {
                         db.saveMsgHistory(splitMsg[1], splitMsg[2], splitMsg[3]);
                         forwardMessage(splitMsg[1], splitMsg[2], splitMsg[3]);
                     }
-                    else if (header.equals("/SendGroupMessage")) {
-                        //TODO: implement group chatting
+                    else if (header.equals("/sendGroupMessage")) {
+                        String[] splitGroup = splitMsg[2].split(" ");
+                        String owner = splitGroup[0];
+                        StringBuilder groupName = new StringBuilder(splitGroup[1]);
+                        for (int i = 2; i < splitGroup.length; i++)
+                            groupName.append(" ").append(splitGroup[i]);
+                        if (!db.groupMemberCheck(groupName.toString().trim(), owner, splitMsg[1])) {
+                            send("/fail|You are not in that group to send message");
+                            continue;
+                        }
+                        db.saveGroupMsgHistory(splitMsg[1], owner, groupName.toString().trim(), splitMsg[3]);
+                        forwardGroupMessage(splitMsg[1], owner, groupName.toString().trim(), splitMsg[3]);
                     }
                     else if (header.equals("/requestChatHistory")) {
                         String name1 = splitMsg[1];
@@ -195,14 +218,23 @@ public class Server implements Runnable {
                             amount = Integer.parseInt(splitMsg[3]);
                         sendChatHistory(name1, name2, amount);
                     }
+                    else if (header.equals("/requestGroupChatHistory")) {
+                        String owner = splitMsg[2];
+                        String groupName = splitMsg[1];
+                        int amount = -1;
+                        if (splitMsg.length == 4)
+                            amount = Integer.parseInt(splitMsg[3]);
+                        sendGroupChatHistory(owner, groupName, amount);
+                    }
                     else if (header.equals("/createGroup")) {
                         if (!db.groupNameCheck(splitMsg[1], splitMsg[2])) {
                             send("/fail|You have already created a group with that name");
                             continue;
                         }
                         db.createGroup(splitMsg[1], splitMsg[2]);
-                        send("/info|Create group successfully, refresh to update the board");
-                    } else if (header.equals("/leaveGroup")) {
+                        send("/info|Create group successfully");
+                    }
+                    else if (header.equals("/leaveGroup")) {
                         if (!db.groupMemberCheck(splitMsg[1], splitMsg[2], splitMsg[3])) {
                             send("/fail|You have already left that group");
                             continue;
@@ -210,8 +242,20 @@ public class Server implements Runnable {
                         db.leaveGroup(splitMsg[1], splitMsg[2], splitMsg[3]);
                         send("/info|You left the group");
                     }
+                    else if (header.equals("/addMember")) {
+                        if (db.groupMemberCheck(splitMsg[1], splitMsg[2], splitMsg[3])) {
+                            send("/fail|This user has already in the group");
+                            continue;
+                        }
+                        if (db.usernameCheck(splitMsg[3])) {
+                            send("/fail|This user is not exist");
+                            continue;
+                        }
+                        db.addMemberToGroup(splitMsg[1], splitMsg[2], splitMsg[3]);
+                        send("/info|Add this member to group successfully");
+                    }
                 }
-                while (true); //TODO implement change password if have enough time
+                while (true); //TODO implement change password if have enough time.p/s:i Think there is not enough time bro:<
                 System.out.println("Client " + socket.getPort() + " has disconnected");
             }
            catch (Exception e) {
@@ -265,6 +309,23 @@ public class Server implements Runnable {
 
         public void sendChatHistory(String name1, String name2, int amount) {
             ArrayList<String[]> messages = db.getAllMessages(name1, name2);
+            int count = 0;
+            send("/startHistory");
+            if (messages.isEmpty()) {
+                send("/endHistory");
+                return;
+            }
+            for (String[] message : messages) {
+                send("/chatHistory|" + message[0] + "|" + message[1]);
+                count++;
+                if (count == amount)
+                    break;
+            }
+            send("/endHistory");
+        }
+
+        public void sendGroupChatHistory(String owner, String groupName, int amount) {
+            ArrayList<String[]> messages = db.getAllGroupMessages(owner, groupName);
             int count = 0;
             send("/startHistory");
             if (messages.isEmpty()) {

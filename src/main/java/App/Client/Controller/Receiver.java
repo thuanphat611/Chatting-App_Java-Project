@@ -119,6 +119,14 @@ public class Receiver implements Runnable {
                         controller.refreshChatPanel();
                     }
                 }
+                else if (header.equals("/receiveGroupMessage")) {
+                    if (!controller.getCurrentPanel().equals("chat"))
+                        return;
+                    if (controller.getChatWith().equals(splitMsg[1])) {
+                        controller.addMessageToPanel(splitMsg[2], splitMsg[3]);
+                        controller.refreshChatPanel();
+                    }
+                }
             }
         }
         catch (Exception e) {

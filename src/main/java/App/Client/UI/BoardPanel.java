@@ -64,7 +64,6 @@ public class BoardPanel extends JPanel {
 
         footer.add(btnGroupWrap, BorderLayout.CENTER);
         wrapper.add(footer, BorderLayout.PAGE_START);
-        //TODO implement buttons functionality
 
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
         verticalMargin.add(wrapper);
@@ -97,6 +96,7 @@ public class BoardPanel extends JPanel {
                 groupName = groupName.trim();
                 if (groupName.length() > 50) {
                     JOptionPane.showMessageDialog(parent, "Maximum length for group name is 50 characters", "Create new group", JOptionPane.PLAIN_MESSAGE);
+                    return;
                 }
                 controller.createGroup(username, groupName);
                 controller.refreshRequest();
@@ -143,7 +143,29 @@ public class BoardPanel extends JPanel {
                         controller.refreshRequest();
                     }
                 });
+                addMember.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        String memberName = JOptionPane.showInputDialog(parent, "Input group name", "Add member to group", JOptionPane.PLAIN_MESSAGE);
+                        if (memberName == null)
+                            return;
+                        if (memberName.isEmpty()) {
+                            return;
+                        }
+                        memberName = memberName.trim();
+                        if (memberName.length() > 30) {
+                            JOptionPane.showMessageDialog(parent, "This user is not exist", "Add member to group", JOptionPane.PLAIN_MESSAGE);
+                            return;
+                        }
+                        if (memberName.equals(username)) {
+                            JOptionPane.showMessageDialog(parent, "Don't need to add yourself to this group, you have already in it :)", "Add member to group", JOptionPane.PLAIN_MESSAGE);
+                            return;
+                        }
+                        controller.addMemberRequest(chat[0], chat[2], memberName);
+                    }
+                });
             }
+
             JPanel btnWrap = new JPanel();
             btnWrap.setLayout(new BorderLayout());
             btnWrap.add(btnGroup, BorderLayout.CENTER);
@@ -174,7 +196,10 @@ public class BoardPanel extends JPanel {
             chatBtn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    controller.toChatPanel(prev, username, chat[0], chat[1]);
+                    if (chat.length == 3)
+                        controller.toChatPanel(prev, username, chat[2] + " " + chat[0], chat[1]);
+                    else
+                        controller.toChatPanel(prev, username, chat[0], chat[1]);
                     parent.pack();
                     parent.validate();
                 }

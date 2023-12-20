@@ -43,6 +43,13 @@ public class ChatPanel extends JPanel {
         JButton historyBtn = new JButton("History");
         JLabel receiverLbl = new JLabel();
         receiverLbl.setText(this.receiverName);
+        if (type.equals("group")) {
+            String[] splitReceiver = this.receiverName.split(" ");
+            StringBuilder groupName = new StringBuilder(splitReceiver[1]);
+            for (int i = 2; i < splitReceiver.length; i++)
+                groupName.append(" ").append(splitReceiver[i]);
+            receiverLbl.setText(groupName.toString().trim());
+        }
         JPanel receiverWrap = new JPanel();
         receiverWrap.setLayout(new FlowLayout(FlowLayout.CENTER));
         receiverWrap.add(receiverLbl);
@@ -102,7 +109,6 @@ public class ChatPanel extends JPanel {
                 controller.refreshChatPanel();
             }
         });
-//TODO specify group by owner
         refreshMsg();
     }
 

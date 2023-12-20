@@ -24,6 +24,8 @@ public class Database {
     private PreparedStatement deleteGroupStmt;
     private PreparedStatement groupCheckStmt;
     private PreparedStatement groupMemberCheckStmt;
+    private PreparedStatement getGroupMsgStmt;
+    private PreparedStatement deleteGroupHistoryStmt;
 
     public Database() {
         conn = null;
@@ -45,6 +47,8 @@ public class Database {
                 deleteGroupStmt = conn.prepareStatement("DELETE GROUPS WHERE GROUP_NAME = ? AND OWNER = ?");
                 groupCheckStmt = conn.prepareStatement("SELECT * FROM GROUPS GR, GROUP_MEMBERS GM WHERE GR.GROUP_NAME = GM.GROUP_NAME AND GR.OWNER = GM.OWNER AND GR.GROUP_NAME = ? AND GR.OWNER = ?");
                 groupMemberCheckStmt = conn.prepareStatement("SELECT * FROM GROUP_MEMBERS WHERE GROUP_NAME = ? AND OWNER = ? AND MEMBER_NAME = ?");
+                getGroupMsgStmt = conn.prepareStatement("SELECT * FROM CHAT_HISTORY WHERE RECEIVER = ? ORDER BY ORDER_INDEX DESC");
+                deleteGroupHistoryStmt = conn.prepareStatement("DELETE CHAT_HISTORY WHERE RECEIVER = ?");
             }
             else {
                 System.out.println("Database: error creating connection");
@@ -106,6 +110,7 @@ public class Database {
         return true;
     }
 
+    //if member is in the group -> true, else false
     public boolean groupMemberCheck(String groupName, String owner, String memberName) {
         boolean result = false;
         try {
@@ -121,7 +126,7 @@ public class Database {
         }
         return result;
     }
-
+//TODO delete message history when the group is deleted
     public boolean groupNameCheck(String username, String groupName) {
         boolean result = false;
         try {
@@ -213,9 +218,13 @@ public class Database {
 
     public void deleteGroup(String groupName, String owner) {
         try {
+            //delete group in table GROUPS
             deleteGroupStmt.setString(1, groupName);
             deleteGroupStmt.setString(2, owner);
             deleteGroupStmt.executeUpdate();
+            //delete group chat history
+            deleteGroupHistoryStmt.setString(1, owner + " " + groupName);
+            deleteGroupHistoryStmt.executeUpdate();
         }
         catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -242,6 +251,21 @@ public class Database {
             getMsgIDStmt.setString(2, name2);
             getMsgIDStmt.setString(3, name2);
             ResultSet rs = getMsgIDStmt.executeQuery();
+            if (!rs.next())
+                return 0;
+            else
+                return rs.getInt("ORDER_INDEX");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return -1;
+    }
+
+    public int getGroupMsgID(String owner, String groupName) {
+        try {
+            String receiver = owner + " " + groupName;
+            getGroupMsgStmt.setString(1, receiver);
+            ResultSet rs = getGroupMsgStmt.executeQuery();
             if (!rs.next())
                 return 0;
             else
@@ -286,6 +310,39 @@ public class Database {
         return result;
     }
 
+    public ArrayList<String[]> getAllGroupMessages(String owner, String groupName) {
+        ArrayList<String[]> result = new ArrayList<>();
+        try {
+            String receiver = owner + " " + groupName;
+            getGroupMsgStmt.setString(1, receiver);
+            ResultSet rs = getGroupMsgStmt.executeQuery();
+            while (rs.next()) {
+                String[] message = new String[2];
+                message[0] = rs.getString("SENDER");
+                message[1] = rs.getString("CONTENT");
+                result.add(message);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
+
+    public void saveGroupMsgHistory(String sender, String owner, String groupName, String content) {
+        try {
+            int lastIndex = getGroupMsgID(owner, groupName);
+            String receiver = owner + " " + groupName;
+            int id = lastIndex + 1;
+            saveMsgStmt.setInt(1, id);
+            saveMsgStmt.setString(2, sender);
+            saveMsgStmt.setString(3, receiver);
+            saveMsgStmt.setString(4, content);
+            saveMsgStmt.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     //test Database's method todo delete this
     public static void main(String[] args) {
         Database db1 = new Database();
@@ -302,7 +359,7 @@ public class Database {
 //        db1.deleteGroup("test group", "admin");
 //        db1.groupCheck("test group", "admin");
 //        System.out.println(db1.getMsgID("admin", "phat"));
-//        ArrayList<String[]> result = db1.getAllMessages("phat", "admin");
+//        ArrayList<String[]> result = db1.getAllGroupMessages("admin", "test group");
 //        for (int i = 0; i < result.size(); i++)
 //            System.out.println(result.get(i)[0] + " " + result.get(i)[1]);
     }

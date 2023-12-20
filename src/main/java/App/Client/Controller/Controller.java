@@ -137,10 +137,24 @@ public class Controller implements Runnable {
 
     public void getChatHistory(String name1, String name2, int amount) {
         getHistoryDone = false;
-        if (amount == -1)
-            sendThread.sendMessage("/requestChatHistory|" + name1 + "|" + name2);
-        else
-            sendThread.sendMessage("/requestChatHistory|" + name1 + "|" + name2 + "|" + amount);
+        if (!name2.contains(" ")) { // normal user cannot contain any spaces in his name
+            if (amount == -1)
+                sendThread.sendMessage("/requestChatHistory|" + name1 + "|" + name2);
+            else
+                sendThread.sendMessage("/requestChatHistory|" + name1 + "|" + name2 + "|" + amount);
+        }
+        else { //group has a space to separate owner and group name
+            String[] splitGroup = name2.split(" ");
+            String owner = splitGroup[0];
+            StringBuilder groupName = new StringBuilder(splitGroup[1]);
+            for (int i = 2; i < splitGroup.length; i++)
+                groupName.append(" ").append(splitGroup[i]);
+            if (amount == -1)
+                sendThread.sendMessage("/requestGroupChatHistory|" + groupName.toString().trim() + "|" + owner);
+            else
+                sendThread.sendMessage("/requestGroupChatHistory|" + groupName.toString().trim() + "|" + owner + "|" + amount);
+        }
+
         while (!getHistoryDone) {
             Thread.onSpinWait();
         }
@@ -170,6 +184,13 @@ public class Controller implements Runnable {
         parent.validate();
     }
 
+    public void updateChatPanel(String username, String receiverName) {
+        if (!currentPanel.equals("chat"))
+            return;
+        getChatHistory(username, receiverName, 100);
+        refreshChatPanel();
+    }
+
     public void addMessageToPanel(String sender, String content) {
         String[] temp = new String[2];
         temp[0] = sender;
@@ -196,5 +217,9 @@ public class Controller implements Runnable {
 
     public void leaveGroup(String groupName, String owner, String memberName) {
         sendThread.sendMessage("/leaveGroup|" + groupName + "|" + owner + "|" + memberName);
+    }
+
+    public void addMemberRequest(String groupName, String owner, String memberName) {
+        sendThread.sendMessage("/addMember|" + groupName + "|" + owner + "|" + memberName);
     }
 }
