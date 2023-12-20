@@ -171,8 +171,9 @@ public class BoardPanel extends JPanel {
             chatBtn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-//                    ArrayList<String[]> chatData = controller.getChatHistory(username, chat[0]);
-//                    ChatPanel chatPnl = new ChatPanel(parent, controller, username, chat[0], chatData, chat[1]);
+                    controller.toChatPanel(prev, username, chat[0], chat[1]);
+                    parent.pack();
+                    parent.validate();
                 }
             });
         }

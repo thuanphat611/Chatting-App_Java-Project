@@ -79,7 +79,8 @@ public class Receiver implements Runnable {
                                 chatItem[1] = "group";
                                 chatList.add(chatItem);
                             }
-                        } else if (listHeader.equals("/onlineList")) {
+                        }
+                        else if (listHeader.equals("/onlineList")) {
                             for (int i = 1; i < splitList.length; i++) {
                                 String[] chatItem = new String[2];
                                 chatItem[0] = splitList[i];
@@ -89,6 +90,34 @@ public class Receiver implements Runnable {
                         }
                     }
                     controller.updateBoard(chatList);
+                }
+                else if (header.equals("/startHistory")) {
+                    ArrayList<String[]> response = new ArrayList<>();
+                    while (true) {
+                        String listMsg = br.readLine();
+                        System.out.println("Receiver: " + listMsg);
+                        String[] splitList = listMsg.split("\\|");
+                        String listHeader = splitList[0];
+
+                        if (listHeader.equals("/endHistory"))
+                            break;
+                        else if (listHeader.equals("/chatHistory")) {
+                            String[] chat = new String[2];
+                            chat[0] = splitList[1];
+                            chat[1] = splitList[2];
+                            response.add(chat);
+                        }
+                    }
+                    controller.setHistoryBuffer(response);
+                    controller.setGetHistoryDone(true);
+                }
+                else if (header.equals("/receiveMessage")) {
+                    if (!controller.getCurrentPanel().equals("chat"))
+                        return;
+                    if (controller.getChatWith().equals(splitMsg[1])) {
+                        controller.addMessageToPanel(splitMsg[1], splitMsg[2]);
+                        controller.refreshChatPanel();
+                    }
                 }
             }
         }

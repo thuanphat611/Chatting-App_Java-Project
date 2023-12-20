@@ -4,43 +4,29 @@ import App.Client.Controller.Controller;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-//TODO maximum message length is 200 characters
 public class ChatPanel extends JPanel {
     private JFrame parent;
+    private JPanel prev;
     private Controller controller;
     private JPanel content;
     private String receiverName;
     private String type;
     private String username;
     private ArrayList<String[]> messages;
-    public ChatPanel(JFrame parent, Controller controller, String username, String receiverName, ArrayList<String[]> messages, String type) {
-        this.parent = parent;
-        this.controller = controller;
+    public ChatPanel(JFrame parentFrame, JPanel prevPanel, Controller controll, String username, String receiverName, ArrayList<String[]> messages, String typeOfChat) {
+        this.parent = parentFrame;
+        this.prev = prevPanel;
+        this.controller = controll;
         this.receiverName = receiverName;
         this.messages = messages;
         this.username = username;
-        this.type = type;
+        this.type = typeOfChat;
         content = new JPanel();
         content.setLayout(new BorderLayout());
-
-        //TODO remove test messages
-        for (int i = 0; i < 30; i++)
-        {
-            String[] temp = new String[2];
-            temp[0] = receiverName;
-            String sender = receiverName;
-            if (i % 2 != 0) {
-                sender = username;
-                temp[0] = username;
-            }
-            temp[1] = "tin nhan tu " + sender + " " + i;
-            if (i % 10 == 0) {
-                temp[1] = "Beneath a star-strewn sky, the river murmured softly, weaving tales of forgotten realms. Moonlight painted silver ripples, and a wise owl observed, its eyes gleaming in the shadows of the enchanted, ancient woods.";
-            }
-            this.messages.add(temp);
-        }
 
         setPreferredSize(new Dimension(600, 700));
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -54,6 +40,7 @@ public class ChatPanel extends JPanel {
         JPanel header = new JPanel();
         header.setLayout(new BorderLayout());
         JButton backBtn = new JButton("Back");
+        JButton historyBtn = new JButton("History");
         JLabel receiverLbl = new JLabel();
         receiverLbl.setText(this.receiverName);
         JPanel receiverWrap = new JPanel();
@@ -61,8 +48,9 @@ public class ChatPanel extends JPanel {
         receiverWrap.add(receiverLbl);
         header.add(backBtn, BorderLayout.LINE_START);
         header.add(receiverWrap, BorderLayout.CENTER);
+        header.add(historyBtn, BorderLayout.LINE_END);
         JScrollPane headerSP = new JScrollPane(header);
-
+//TODO implement history button
         JPanel wrapper = new JPanel();
         wrapper.setLayout(new BorderLayout());
         wrapper.add(headerSP, BorderLayout.PAGE_START);
@@ -88,7 +76,37 @@ public class ChatPanel extends JPanel {
         verticalMargin.add(wrapper);
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
 
+        backBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                parent.setContentPane(prev);
+                parent.pack();
+                parent.validate();
+            }
+        });
+
+        sendBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String message = msgIn.getText();
+                if (message.isEmpty())
+                    return;
+                if (message.length() > 200) {
+                    JOptionPane.showMessageDialog(parent, "Sorry, messages can only be up to 200 characters long", "Cannot send message", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+                controller.sendMessage(username, receiverName, message, type);
+                msgIn.setText("");
+                controller.addMessageToPanel(username, message);
+                controller.refreshChatPanel();
+            }
+        });
+//TODO specify group by owner
         refreshMsg();
+    }
+
+    public void setChatList(ArrayList<String[]> list) {
+        this.messages = list;
     }
 
     public void refreshMsg() {
@@ -114,8 +132,7 @@ public class ChatPanel extends JPanel {
             }
             JPanel msgContentWrap = new JPanel();
             msgContentWrap.setLayout(new BoxLayout(msgContentWrap, BoxLayout.PAGE_AXIS));
-//            JLabel msgContent = new JLabel();
-//            msgContent.setText(message[1]);
+
             int lineSize = 90;
             int numberOfLine = message[1].length() / lineSize;
             if (message[1].length() % lineSize != 0)
@@ -132,7 +149,6 @@ public class ChatPanel extends JPanel {
             msgContentWrapLeft.setLayout(new FlowLayout(FlowLayout.LEFT));
             msgContentWrapLeft.add(msgContentWrap);
             messageBody.add(msgSenderWrap);
-            messageBody.add(Box.createRigidArea(new Dimension(0, 5)));
             messageBody.add(msgContentWrapLeft);
 
             JPanel paddingY = new JPanel();
@@ -152,6 +168,9 @@ public class ChatPanel extends JPanel {
             content.add(contentWrapper, BorderLayout.PAGE_START);
         }
     }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
 }
 //TODO handle long message
-//TODO implement back button

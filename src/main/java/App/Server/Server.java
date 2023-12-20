@@ -56,25 +56,6 @@ public class Server implements Runnable {
         }
     }
 
-//    void setOnline(String username, int index) {
-//        clientHashMap.put(username, index);
-//        broadcast("/online", username);
-//    }
-
-//    void setOffline(String username, int index) {
-//        clientHashMap.remove(username);
-//        broadcast("/offline", username);
-//    }
-
-    //announce to all current clients that user abc is online
-//    void broadcast(String announcement, String username) {
-//        for (ConnectionHandler client : clientList) {
-//            if (!username.equals(client.getUsername())) {
-//                client.send(announcement + "|" + username);
-//            }
-//        }
-//    }
-
     void forwardMessage(String from, String to, String message) {
         if (clientHashMap.get(from) == null || clientHashMap.get(to) == null)
             return;
@@ -200,11 +181,19 @@ public class Server implements Runnable {
                         if (splitMsg.length != 4) {
                             continue;
                         }
-                        //TODO implement save to history
+                        db.saveMsgHistory(splitMsg[1], splitMsg[2], splitMsg[3]);
                         forwardMessage(splitMsg[1], splitMsg[2], splitMsg[3]);
                     }
                     else if (header.equals("/SendGroupMessage")) {
                         //TODO: implement group chatting
+                    }
+                    else if (header.equals("/requestChatHistory")) {
+                        String name1 = splitMsg[1];
+                        String name2 = splitMsg[2];
+                        int amount = -1;
+                        if (splitMsg.length == 4)
+                            amount = Integer.parseInt(splitMsg[3]);
+                        sendChatHistory(name1, name2, amount);
                     }
                 }
                 while (true); //TODO implement change password if have enough time
@@ -265,6 +254,23 @@ public class Server implements Runnable {
                 System.out.print("Send message to client " + socket.getPort() + " error:");
                 System.out.println(e.getMessage());
             }
+        }
+
+        public void sendChatHistory(String name1, String name2, int amount) {
+            ArrayList<String[]> messages = db.getAllMessages(name1, name2);
+            int count = 0;
+            send("/startHistory");
+            if (messages.isEmpty()) {
+                send("/endHistory");
+                return;
+            }
+            for (String[] message : messages) {
+                send("/chatHistory|" + message[0] + "|" + message[1]);
+                count++;
+                if (count == amount)
+                    break;
+            }
+            send("/endHistory");
         }
 
         public String getUsername() {
