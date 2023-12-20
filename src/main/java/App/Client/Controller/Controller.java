@@ -189,4 +189,12 @@ public class Controller implements Runnable {
             return "";
         return chatPnl.getReceiverName();
     }
+
+    public void createGroup(String username, String groupName) {
+        sendThread.sendMessage("/createGroup|" + username + "|" + groupName);
+    }
+
+    public void leaveGroup(String groupName, String owner, String memberName) {
+        sendThread.sendMessage("/leaveGroup|" + groupName + "|" + owner + "|" + memberName);
+    }
 }

@@ -39,12 +39,11 @@ public class Receiver implements Runnable {
                         if (listHeader.equals("/end"))
                             break;
                         else if (listHeader.equals("/groupList")) {
-                            for (int i = 1; i < splitList.length; i++) {
-                                String[] chatItem = new String[2];
-                                chatItem[0] = splitList[i];
-                                chatItem[1] = "group";
-                                chatList.add(chatItem);
-                            }
+                            String[] chatItem = new String[3];
+                            chatItem[0] = splitList[1];
+                            chatItem[1] = "group";
+                            chatItem[2] = splitList[2];
+                            chatList.add(chatItem);
                         } else if (listHeader.equals("/onlineList")) {
                             for (int i = 1; i < splitList.length; i++) {
                                 String[] chatItem = new String[2];
@@ -61,8 +60,10 @@ public class Receiver implements Runnable {
                     controller.toHome();
                 }
                 else if (header.equals("/fail"))
-                    JOptionPane.showMessageDialog(parent, splitMsg[1], "Failed", JOptionPane.INFORMATION_MESSAGE);
-                else if (header.equals("/refresh")) {
+                    JOptionPane.showMessageDialog(parent, splitMsg[1], "Failed", JOptionPane.PLAIN_MESSAGE);
+                else if (header.equals("/info")) {
+                    JOptionPane.showMessageDialog(parent, splitMsg[1], "Info", JOptionPane.PLAIN_MESSAGE);
+                } else if (header.equals("/refresh")) {
                     ArrayList<String[]> chatList = new ArrayList<>();
                     while (true) {
                         String listMsg = br.readLine();
@@ -73,12 +74,11 @@ public class Receiver implements Runnable {
                         if (listHeader.equals("/end"))
                             break;
                         else if (listHeader.equals("/groupList")) {
-                            for (int i = 1; i < splitList.length; i++) {
-                                String[] chatItem = new String[2];
-                                chatItem[0] = splitList[i];
-                                chatItem[1] = "group";
-                                chatList.add(chatItem);
-                            }
+                            String[] chatItem = new String[3];
+                            chatItem[0] = splitList[1];
+                            chatItem[1] = "group";
+                            chatItem[2] = splitList[2];
+                            chatList.add(chatItem);
                         }
                         else if (listHeader.equals("/onlineList")) {
                             for (int i = 1; i < splitList.length; i++) {

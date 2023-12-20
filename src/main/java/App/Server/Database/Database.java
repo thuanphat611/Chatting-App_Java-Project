@@ -23,6 +23,7 @@ public class Database {
     private PreparedStatement leaveGroupStmt;
     private PreparedStatement deleteGroupStmt;
     private PreparedStatement groupCheckStmt;
+    private PreparedStatement groupMemberCheckStmt;
 
     public Database() {
         conn = null;
@@ -43,6 +44,7 @@ public class Database {
                 leaveGroupStmt = conn.prepareStatement("DELETE GROUP_MEMBERS WHERE GROUP_NAME = ? AND OWNER = ? AND MEMBER_NAME = ?");
                 deleteGroupStmt = conn.prepareStatement("DELETE GROUPS WHERE GROUP_NAME = ? AND OWNER = ?");
                 groupCheckStmt = conn.prepareStatement("SELECT * FROM GROUPS GR, GROUP_MEMBERS GM WHERE GR.GROUP_NAME = GM.GROUP_NAME AND GR.OWNER = GM.OWNER AND GR.GROUP_NAME = ? AND GR.OWNER = ?");
+                groupMemberCheckStmt = conn.prepareStatement("SELECT * FROM GROUP_MEMBERS WHERE GROUP_NAME = ? AND OWNER = ? AND MEMBER_NAME = ?");
             }
             else {
                 System.out.println("Database: error creating connection");
@@ -104,6 +106,22 @@ public class Database {
         return true;
     }
 
+    public boolean groupMemberCheck(String groupName, String owner, String memberName) {
+        boolean result = false;
+        try {
+           groupMemberCheckStmt.setString(1, groupName);
+           groupMemberCheckStmt.setString(2, owner);
+           groupMemberCheckStmt.setString(3, memberName);
+           ResultSet rs = groupMemberCheckStmt.executeQuery();
+            if (rs.next()) {
+                result = true;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
+
     public boolean groupNameCheck(String username, String groupName) {
         boolean result = false;
         try {
@@ -161,7 +179,7 @@ public class Database {
             ArrayList<String> groups = new ArrayList<>();
 
             while (rs.next()) {
-                String groupName = rs.getString("GROUP_NAME");
+                String groupName = rs.getString("GROUP_NAME") + "|" + rs.getString("OWNER");
                 groups.add(groupName);
             }
             if (groups.isEmpty())
@@ -268,14 +286,14 @@ public class Database {
         return result;
     }
 
-    //test Database's method
+    //test Database's method todo delete this
     public static void main(String[] args) {
         Database db1 = new Database();
 //        String[] res = db1.getGroups("admin");
 //        for (String i : res)
 //            System.out.println(i);
 //        System.out.println(db1.register("admin", "123456"));
-//        db1.createGroup("admin", "test group");
+//        db1.createGroup("admin", "test group 2");
 //        System.out.println(db1.groupNameCheck("admin", "test group"));
 //        db1.saveMsgHistory("phat", "admin", "hello");
 //        System.out.println(db1.checkMsgID("admin_phat_001"));

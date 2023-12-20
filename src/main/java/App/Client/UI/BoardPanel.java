@@ -11,6 +11,7 @@ public class BoardPanel extends JPanel {
     private JFrame parent;
     private Controller controller;
     private JPanel content;
+    private JScrollPane contentSP;
     private String username;
     private ArrayList<String[]> chatList;
     public BoardPanel(JFrame parent, Controller controller, String username, ArrayList<String[]> chatList) {
@@ -31,41 +32,10 @@ public class BoardPanel extends JPanel {
         add(verticalMargin);
         add(Box.createRigidArea(new Dimension(10, 0)));
 
-        JPanel search = new JPanel();
-        search.setLayout(new FlowLayout(FlowLayout.CENTER));
-        JTextField searchbar = new JTextField();
-        JButton searchBtn = new JButton("Search");
-        searchbar.setPreferredSize(new Dimension(400, 25));
-        //searchbar placeholder
-        searchbar.setForeground(Color.GRAY);
-        searchbar.setText("Search for user or group");
-        searchbar.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (searchbar.getText().equals("Search for user or group")) {
-                    searchbar.setText("");
-                    searchbar.setForeground(Color.BLACK);
-                }
-            }
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (searchbar.getText().isEmpty()) {
-                    searchbar.setForeground(Color.GRAY);
-                    searchbar.setText("Search for user or group");
-                }
-            }
-        });
-
-        search.add(searchbar);
-        search.add(Box.createRigidArea(new Dimension(10, 0)));
-        search.add(searchBtn);
-        JScrollPane searchWrap = new JScrollPane(search);
-
         JPanel wrapper = new JPanel();
         wrapper.setLayout(new BorderLayout());
-        wrapper.add(searchWrap, BorderLayout.PAGE_START);
 
-        JScrollPane contentSP = new JScrollPane(content);
+        contentSP = new JScrollPane(content);
         wrapper.add(contentSP, BorderLayout.CENTER);
 
         JPanel footer = new JPanel();
@@ -93,7 +63,7 @@ public class BoardPanel extends JPanel {
         btnGroup.add(logout);
 
         footer.add(btnGroupWrap, BorderLayout.CENTER);
-        wrapper.add(footer, BorderLayout.PAGE_END);
+        wrapper.add(footer, BorderLayout.PAGE_START);
         //TODO implement buttons functionality
 
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -111,6 +81,24 @@ public class BoardPanel extends JPanel {
         refresh.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                controller.refreshRequest();
+            }
+        });
+        createGroup.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String groupName = JOptionPane.showInputDialog(parent, "Input group name", "Create new group", JOptionPane.PLAIN_MESSAGE);
+                if (groupName == null)
+                    return;
+                if (groupName.isEmpty()) {
+                    JOptionPane.showMessageDialog(parent, "Group name cannot be empty", "Create new group", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+                groupName = groupName.trim();
+                if (groupName.length() > 50) {
+                    JOptionPane.showMessageDialog(parent, "Maximum length for group name is 50 characters", "Create new group", JOptionPane.PLAIN_MESSAGE);
+                }
+                controller.createGroup(username, groupName);
                 controller.refreshRequest();
             }
         });
@@ -137,14 +125,29 @@ public class BoardPanel extends JPanel {
             btnGroup.setLayout(new BoxLayout(btnGroup, BoxLayout.PAGE_AXIS));
             btnGroup.add(chatBtn);
             if (chat[1].equals("group")) {
+                chatName.setText("Group: " + chat[0]);
                 JButton outGroup = new JButton("Leave group");
                 btnGroup.add(Box.createRigidArea(new Dimension(0, 5)));
                 btnGroup.add(outGroup);
+                JButton addMember = new JButton("Add Member");
+                btnGroup.add(Box.createRigidArea(new Dimension(0, 5)));
+                btnGroup.add(addMember);
+
+                outGroup.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        chatBtn.setEnabled(false);
+                        addMember.setEnabled(false);
+                        outGroup.setEnabled(false);
+                        controller.leaveGroup(chat[0], chat[2], username);
+                        controller.refreshRequest();
+                    }
+                });
             }
             JPanel btnWrap = new JPanel();
             btnWrap.setLayout(new BorderLayout());
             btnWrap.add(btnGroup, BorderLayout.CENTER);
-            //TODO implement chat buttons
+
             chatPnl.add(chatName, BorderLayout.LINE_START);
             JPanel center = new JPanel();
             center.setPreferredSize(new Dimension(0, 60));
@@ -177,10 +180,14 @@ public class BoardPanel extends JPanel {
                 }
             });
         }
+        contentSP.revalidate();
+        contentSP.repaint();
     }
 
     public void setChatList(ArrayList<String[]> list) {
         this.chatList = list;
         refresh();
+        parent.pack();
+        parent.validate();
     }
 }

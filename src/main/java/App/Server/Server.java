@@ -195,6 +195,21 @@ public class Server implements Runnable {
                             amount = Integer.parseInt(splitMsg[3]);
                         sendChatHistory(name1, name2, amount);
                     }
+                    else if (header.equals("/createGroup")) {
+                        if (!db.groupNameCheck(splitMsg[1], splitMsg[2])) {
+                            send("/fail|You have already created a group with that name");
+                            continue;
+                        }
+                        db.createGroup(splitMsg[1], splitMsg[2]);
+                        send("/info|Create group successfully, refresh to update the board");
+                    } else if (header.equals("/leaveGroup")) {
+                        if (!db.groupMemberCheck(splitMsg[1], splitMsg[2], splitMsg[3])) {
+                            send("/fail|You have already left that group");
+                            continue;
+                        }
+                        db.leaveGroup(splitMsg[1], splitMsg[2], splitMsg[3]);
+                        send("/info|You left the group");
+                    }
                 }
                 while (true); //TODO implement change password if have enough time
                 System.out.println("Client " + socket.getPort() + " has disconnected");
@@ -228,21 +243,13 @@ public class Server implements Runnable {
             if (groups == null)
                 return;
 
-            StringBuilder message = new StringBuilder("/groupList");
-            int count = 0;
+            StringBuilder message = new StringBuilder("/groupList|");
 
             for (String group : groups) {
-                message.append("|").append(group);
-                count++;
-                if (count == 200) { //send 200 username per message
-                    send(message.toString());
-                    count = 0;
-                    message = new StringBuilder("/groupList");
-                }
-            }
-            //send the remaining username
-            if (count != 0)
+                message.append(group);
                 send(message.toString());
+                message = new StringBuilder("/groupList|");
+            }
         }
 
         public void send(String message) {//send a message to user

@@ -79,6 +79,7 @@ public class ChatPanel extends JPanel {
         backBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                controller.refreshRequest();
                 parent.setContentPane(prev);
                 parent.pack();
                 parent.validate();

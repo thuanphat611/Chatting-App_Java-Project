@@ -171,8 +171,8 @@ public class AuthenPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     back.setEnabled(false);
-                    String username = usernameIn.getText();
-                    String password = new String(passwordIn.getPassword());
+                    String username = usernameIn.getText().trim();
+                    String password = new String(passwordIn.getPassword()).trim();
                     String confirmPassword = new String(confirmPasswordIn.getPassword());
 
                     if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
