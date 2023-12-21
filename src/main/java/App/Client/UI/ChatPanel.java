@@ -105,8 +105,20 @@ public class ChatPanel extends JPanel {
                 }
                 controller.sendMessage(username, receiverName, message, type);
                 msgIn.setText("");
-                controller.addMessageToPanel(username, message);
+                controller.addMessageToPanel(username, message , type);
                 controller.refreshChatPanel();
+            }
+        });
+
+        fileBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fc = new JFileChooser();
+                int result = fc.showOpenDialog(null);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    controller.sendFile(username, receiverName, fc.getSelectedFile().getPath());
+                    controller.updateChatPanel(username, receiverName);
+                }
             }
         });
         refreshMsg();
@@ -140,18 +152,46 @@ public class ChatPanel extends JPanel {
             JPanel msgContentWrap = new JPanel();
             msgContentWrap.setLayout(new BoxLayout(msgContentWrap, BoxLayout.PAGE_AXIS));
 
-            int lineSize = 90;
-            int numberOfLine = message[1].length() / lineSize;
-            if (message[1].length() % lineSize != 0)
-                numberOfLine = (message[1].length() / lineSize) + 1;
-            for (int j = 0; j < numberOfLine; j++) {
+            if (message[2].equals("file")) {
                 JLabel line = new JLabel();
-                int end = j * lineSize + lineSize;
-                if (end > message[1].length())
-                    end = message[1].length();
-                line.setText(message[1].substring(j * lineSize, end));
-                msgContentWrap.add(line);
+                String sender = message[1].split(" : ")[0];
+                String fileName = message[1].split(" : ")[1];
+                String fileIndex = message[1].split(" : ")[2];
+                JPanel fileMsg = new JPanel();
+                fileMsg.setLayout(new BorderLayout());
+                JLabel fileNameLbl = new JLabel(fileName);
+                JButton download = new JButton("Download");
+                JPanel space = new JPanel();
+                fileMsg.add(fileNameLbl, BorderLayout.LINE_START);
+                fileMsg.add(space, BorderLayout.CENTER);
+                fileMsg.add(download, BorderLayout.LINE_END);
+                msgContentWrap.add(fileMsg);
+
+                download.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (type.equals("group"))
+                            controller.downloadFile(sender, receiverName, fileIndex, fileName);
+                        else
+                            controller.downloadFile(sender, username, fileIndex, fileName);
+                    }
+                });
             }
+            else {
+                int lineSize = 90;
+                int numberOfLine = message[1].length() / lineSize;
+                if (message[1].length() % lineSize != 0)
+                    numberOfLine = (message[1].length() / lineSize) + 1;
+                for (int j = 0; j < numberOfLine; j++) {
+                    JLabel line = new JLabel();
+                    int end = j * lineSize + lineSize;
+                    if (end > message[1].length())
+                        end = message[1].length();
+                    line.setText(message[1].substring(j * lineSize, end));
+                    msgContentWrap.add(line);
+                }
+            }
+
             JPanel msgContentWrapLeft = new JPanel();
             msgContentWrapLeft.setLayout(new FlowLayout(FlowLayout.LEFT));
             msgContentWrapLeft.add(msgContentWrap);

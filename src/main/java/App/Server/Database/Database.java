@@ -42,7 +42,7 @@ public class Database {
                 addMemberStmt = conn.prepareStatement("INSERT GROUP_MEMBERS (GROUP_NAME, OWNER, MEMBER_NAME) VALUES (?, ?, ?)");
                 getGroupStmt = conn.prepareStatement("SELECT * FROM GROUP_MEMBERS WHERE MEMBER_NAME = ?");
                 getMsgIDStmt = conn.prepareStatement("SELECT * FROM CHAT_HISTORY WHERE (SENDER = ? AND RECEIVER = ?) OR (SENDER = ? AND RECEIVER = ?) ORDER BY ORDER_INDEX DESC");
-                saveMsgStmt = conn.prepareStatement("INSERT CHAT_HISTORY (ORDER_INDEX, SENDER, RECEIVER, CONTENT) VALUES (?, ?, ?, ?)");
+                saveMsgStmt = conn.prepareStatement("INSERT CHAT_HISTORY (ORDER_INDEX, SENDER, RECEIVER, CONTENT, TYPE) VALUES (?, ?, ?, ?, ?)");
                 leaveGroupStmt = conn.prepareStatement("DELETE GROUP_MEMBERS WHERE GROUP_NAME = ? AND OWNER = ? AND MEMBER_NAME = ?");
                 deleteGroupStmt = conn.prepareStatement("DELETE GROUPS WHERE GROUP_NAME = ? AND OWNER = ?");
                 groupCheckStmt = conn.prepareStatement("SELECT * FROM GROUPS GR, GROUP_MEMBERS GM WHERE GR.GROUP_NAME = GM.GROUP_NAME AND GR.OWNER = GM.OWNER AND GR.GROUP_NAME = ? AND GR.OWNER = ?");
@@ -276,7 +276,7 @@ public class Database {
         return -1;
     }
 
-    public void saveMsgHistory(String sender, String receiver, String content) {
+    public void saveMsgHistory(String sender, String receiver, String content, String type) {
         try {
             int lastIndex = getMsgID(sender, receiver);
             int id = lastIndex + 1;
@@ -284,6 +284,7 @@ public class Database {
             saveMsgStmt.setString(2, sender);
             saveMsgStmt.setString(3, receiver);
             saveMsgStmt.setString(4, content);
+            saveMsgStmt.setString(5, type);
             saveMsgStmt.executeUpdate();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -299,9 +300,10 @@ public class Database {
             getMsgIDStmt.setString(3, receiver);
             ResultSet rs = getMsgIDStmt.executeQuery();
             while (rs.next()) {
-                String[] message = new String[2];
+                String[] message = new String[3];
                 message[0] = rs.getString("SENDER");
                 message[1] = rs.getString("CONTENT");
+                message[2] = rs.getString("TYPE");
                 result.add(message);
             }
         } catch (SQLException e) {
@@ -317,9 +319,10 @@ public class Database {
             getGroupMsgStmt.setString(1, receiver);
             ResultSet rs = getGroupMsgStmt.executeQuery();
             while (rs.next()) {
-                String[] message = new String[2];
+                String[] message = new String[3];
                 message[0] = rs.getString("SENDER");
                 message[1] = rs.getString("CONTENT");
+                message[2] = rs.getString("TYPE");
                 result.add(message);
             }
         } catch (SQLException e) {
@@ -328,7 +331,7 @@ public class Database {
         return result;
     }
 
-    public void saveGroupMsgHistory(String sender, String owner, String groupName, String content) {
+    public void saveGroupMsgHistory(String sender, String owner, String groupName, String content, String type) {
         try {
             int lastIndex = getGroupMsgID(owner, groupName);
             String receiver = owner + " " + groupName;
@@ -337,6 +340,7 @@ public class Database {
             saveMsgStmt.setString(2, sender);
             saveMsgStmt.setString(3, receiver);
             saveMsgStmt.setString(4, content);
+            saveMsgStmt.setString(5, type);
             saveMsgStmt.executeUpdate();
         } catch (Exception e) {
             System.out.println(e.getMessage());

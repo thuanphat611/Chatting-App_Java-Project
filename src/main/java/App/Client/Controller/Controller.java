@@ -22,6 +22,7 @@ public class Controller implements Runnable {
     private String currentPanel;
     private ArrayList<String[]> historyBuffer;
     private volatile boolean getHistoryDone;
+    private String downloadLocation;
 
     public Controller(Client parent) {
         this.parent = parent;
@@ -30,7 +31,17 @@ public class Controller implements Runnable {
         historyBuffer = new ArrayList<>();
         getHistoryDone = false;
         currentPanel = "";
+        downloadLocation = "Client_storage";
+
+        File storage_dir = new File(downloadLocation);
+        if (!storage_dir.exists()) {
+            if (!storage_dir.mkdir()) {
+                System.out.println("Error in creating storage directory for file sending functionality(client)");
+            }
+        }
     }
+
+
 
     @Override
     public void run() {
@@ -41,9 +52,11 @@ public class Controller implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            DataOutputStream fileSender = new DataOutputStream(socket.getOutputStream());
+            DataInputStream fileReceiver = new DataInputStream(socket.getInputStream());
 
-            sendThread = new Sender(bw, this);
-            receiveThread = new Receiver(br, parent, this);
+            sendThread = new Sender(bw, fileSender, this);
+            receiveThread = new Receiver(br, fileReceiver, parent, this);
             Thread th1 = new Thread(sendThread);
             Thread th2 = new Thread(receiveThread);
 
@@ -135,6 +148,10 @@ public class Controller implements Runnable {
         parent.validate();
     }
 
+    public String getDownloadLocation() {
+        return downloadLocation;
+    }
+
     public void getChatHistory(String name1, String name2, int amount) {
         getHistoryDone = false;
         if (!name2.contains(" ")) { // normal user cannot contain any spaces in his name
@@ -191,10 +208,11 @@ public class Controller implements Runnable {
         refreshChatPanel();
     }
 
-    public void addMessageToPanel(String sender, String content) {
-        String[] temp = new String[2];
+    public void addMessageToPanel(String sender, String content, String type) {
+        String[] temp = new String[3];
         temp[0] = sender;
         temp[1] = content;
+        temp[2] = type;
         historyBuffer.add(0, temp);
     }
 
@@ -221,5 +239,16 @@ public class Controller implements Runnable {
 
     public void addMemberRequest(String groupName, String owner, String memberName) {
         sendThread.sendMessage("/addMember|" + groupName + "|" + owner + "|" + memberName);
+    }
+
+    public void sendFile(String username, String receiverName, String filePath) {
+        String[] splitPath = filePath.split("\\\\");
+        String fileName = splitPath[splitPath.length - 1];
+        sendThread.sendMessage("/sendFile|" + username + "|" + receiverName+ "|" + fileName);
+        sendThread.sendFile(filePath);
+    }
+
+    public void downloadFile(String sender, String receiver, String fileIndex, String fileName) {
+        sendThread.sendMessage("/getFile|" + sender + "|" + receiver + "|" + fileIndex + "|"  + fileName);
     }
 }
