@@ -140,6 +140,10 @@ public class Controller implements Runnable {
         return currentPanel;
     }
 
+    public void clearAllMessages(String sender, String receiver) {
+        sendThread.sendMessage("/clearAllMessages|" + sender + "|" + receiver);
+    }
+
     public void updateBoard(ArrayList<String[]> chatList) {
         if (board == null)
             return;
@@ -244,7 +248,10 @@ public class Controller implements Runnable {
     public void sendFile(String username, String receiverName, String filePath) {
         String[] splitPath = filePath.split("\\\\");
         String fileName = splitPath[splitPath.length - 1];
-        sendThread.sendMessage("/sendFile|" + username + "|" + receiverName+ "|" + fileName);
+        if (!receiverName.contains(" "))
+            sendThread.sendMessage("/sendFile|" + username + "|" + receiverName+ "|" + fileName);
+        else
+            sendThread.sendMessage("/sendFile|" + username + "|" + receiverName+ "|" + fileName + "|group");
         sendThread.sendFile(filePath);
     }
 

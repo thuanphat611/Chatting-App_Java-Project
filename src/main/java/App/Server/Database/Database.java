@@ -26,6 +26,8 @@ public class Database {
     private PreparedStatement groupMemberCheckStmt;
     private PreparedStatement getGroupMsgStmt;
     private PreparedStatement deleteGroupHistoryStmt;
+    private PreparedStatement clearAllMessageStmt;
+    private PreparedStatement deleteOneMessageStmt;
 
     public Database() {
         conn = null;
@@ -49,6 +51,8 @@ public class Database {
                 groupMemberCheckStmt = conn.prepareStatement("SELECT * FROM GROUP_MEMBERS WHERE GROUP_NAME = ? AND OWNER = ? AND MEMBER_NAME = ?");
                 getGroupMsgStmt = conn.prepareStatement("SELECT * FROM CHAT_HISTORY WHERE RECEIVER = ? ORDER BY ORDER_INDEX DESC");
                 deleteGroupHistoryStmt = conn.prepareStatement("DELETE CHAT_HISTORY WHERE RECEIVER = ?");
+                clearAllMessageStmt = conn.prepareStatement("DELETE CHAT_HISTORY WHERE SENDER = ? AND RECEIVER = ?");
+                deleteOneMessageStmt = conn.prepareStatement("DELETE CHAT_HISTORY WHERE SENDER = ? AND RECEIVER = ? AND ORDER_INDEX = ?");
             }
             else {
                 System.out.println("Database: error creating connection");
@@ -310,6 +314,16 @@ public class Database {
             System.out.println(e.getMessage());
         }
         return result;
+    }
+
+    public void clearAllMessages(String sender, String receiver) {
+        try {
+            clearAllMessageStmt.setString(1, sender);
+            clearAllMessageStmt.setString(2, receiver);
+            clearAllMessageStmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public ArrayList<String[]> getAllGroupMessages(String owner, String groupName) {

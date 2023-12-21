@@ -17,12 +17,12 @@ public class ChatPanel extends JPanel {
     private String type;
     private String username;
     private ArrayList<String[]> messages;
-    public ChatPanel(JFrame parentFrame, JPanel prevPanel, Controller controll, String username, String receiverName, ArrayList<String[]> messages, String typeOfChat) {
+    public ChatPanel(JFrame parentFrame, JPanel prevPanel, Controller control, String username, String receiverName, ArrayList<String[]> messageList, String typeOfChat) {
         this.parent = parentFrame;
         this.prev = prevPanel;
-        this.controller = controll;
+        this.controller = control;
         this.receiverName = receiverName;
-        this.messages = messages;
+        this.messages = messageList;
         this.username = username;
         this.type = typeOfChat;
         content = new JPanel();
@@ -57,7 +57,7 @@ public class ChatPanel extends JPanel {
         header.add(receiverWrap, BorderLayout.CENTER);
         header.add(historyBtn, BorderLayout.LINE_END);
         JScrollPane headerSP = new JScrollPane(header);
-//TODO implement history button
+
         JPanel wrapper = new JPanel();
         wrapper.setLayout(new BorderLayout());
         wrapper.add(headerSP, BorderLayout.PAGE_START);
@@ -88,6 +88,17 @@ public class ChatPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 controller.refreshRequest();
                 parent.setContentPane(prev);
+                parent.pack();
+                parent.validate();
+            }
+        });
+
+        ChatPanel thisPanel = this;
+        historyBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HistoryPanel history = new HistoryPanel(parent, thisPanel, controller, username, receiverName, messages, type);
+                parent.setContentPane(history);
                 parent.pack();
                 parent.validate();
             }
@@ -128,6 +139,10 @@ public class ChatPanel extends JPanel {
         this.messages = list;
     }
 
+    public void clearHistory() {
+        this.messages.clear();
+    }
+
     public void refreshMsg() {
         content.removeAll();
         if (messages == null || messages.isEmpty())
@@ -153,7 +168,6 @@ public class ChatPanel extends JPanel {
             msgContentWrap.setLayout(new BoxLayout(msgContentWrap, BoxLayout.PAGE_AXIS));
 
             if (message[2].equals("file")) {
-                JLabel line = new JLabel();
                 String sender = message[1].split(" : ")[0];
                 String fileName = message[1].split(" : ")[1];
                 String fileIndex = message[1].split(" : ")[2];

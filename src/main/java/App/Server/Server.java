@@ -302,6 +302,14 @@ public class Server implements Runnable {
                         send("/downloadFile|" + fileName);
                         sendFile(storage + "\\" + sender + "\\" + receiver + "\\" + fileIndex + "_" + fileName);
                     }
+                    else if (header.equals("/clearAllMessages")) {
+                        String sender = splitMsg[1];
+                        String receiver = splitMsg[2];
+                        String directoryPath = storage + "\\" + sender + "\\" + receiver;
+                        File directory = new File(directoryPath);
+                        deleteDirectory(directory);
+                        db.clearAllMessages(sender, receiver);
+                    }
                 }
                 while (true); //TODO implement change password if have enough time.p/s:i Think there is not enough time bro:<
                 System.out.println("Client " + socket.getPort() + " has disconnected");
@@ -451,6 +459,18 @@ public class Server implements Runnable {
             return file.exists();
         }
 
+        private static boolean deleteDirectory(File directory) {
+            if (directory.exists()) {
+                File[] files = directory.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        deleteDirectory(file);
+                    }
+                }
+            }
+            return directory.delete();
+        }
+
         void quit() {
             try {
                 sender.close();
@@ -470,4 +490,3 @@ public class Server implements Runnable {
         server.run();
     }
 }
-//todo sua lai cach luu tin nhan them type vo:v
