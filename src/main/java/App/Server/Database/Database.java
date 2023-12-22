@@ -304,10 +304,11 @@ public class Database {
             getMsgIDStmt.setString(3, receiver);
             ResultSet rs = getMsgIDStmt.executeQuery();
             while (rs.next()) {
-                String[] message = new String[3];
+                String[] message = new String[4];
                 message[0] = rs.getString("SENDER");
                 message[1] = rs.getString("CONTENT");
                 message[2] = rs.getString("TYPE");
+                message[3] = rs.getString("ORDER_INDEX");
                 result.add(message);
             }
         } catch (SQLException e) {
@@ -326,6 +327,17 @@ public class Database {
         }
     }
 
+    public void deleteOneMessage(String sender, String receiver, String orderIndex) {
+        try {
+            deleteOneMessageStmt.setString(1, sender);
+            deleteOneMessageStmt.setString(2, receiver);
+            deleteOneMessageStmt.setString(3, orderIndex);
+            deleteOneMessageStmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public ArrayList<String[]> getAllGroupMessages(String owner, String groupName) {
         ArrayList<String[]> result = new ArrayList<>();
         try {
@@ -333,10 +345,11 @@ public class Database {
             getGroupMsgStmt.setString(1, receiver);
             ResultSet rs = getGroupMsgStmt.executeQuery();
             while (rs.next()) {
-                String[] message = new String[3];
+                String[] message = new String[4];
                 message[0] = rs.getString("SENDER");
                 message[1] = rs.getString("CONTENT");
                 message[2] = rs.getString("TYPE");
+                message[3] = rs.getString("ORDER_INDEX");
                 result.add(message);
             }
         } catch (SQLException e) {

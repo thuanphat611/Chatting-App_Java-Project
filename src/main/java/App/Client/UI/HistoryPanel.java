@@ -13,6 +13,7 @@ public class HistoryPanel extends JPanel {
     private ChatPanel prev;
     private Controller controller;
     private JPanel content;
+    private JScrollPane contentSP;
     private String receiverName;
     private String type;
     private String username;
@@ -56,7 +57,7 @@ public class HistoryPanel extends JPanel {
         wrapper.setLayout(new BorderLayout());
         wrapper.add(headerSP, BorderLayout.PAGE_START);
 
-        JScrollPane contentSP = new JScrollPane(content);
+        contentSP = new JScrollPane(content);
         wrapper.add(contentSP, BorderLayout.CENTER);
 
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -66,6 +67,7 @@ public class HistoryPanel extends JPanel {
         backBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                controller.setCurrentPanel("chat");
                 controller.updateChatPanel(username, receiverName);
                 parent.setContentPane(prev);
                 parent.pack();
@@ -110,6 +112,7 @@ public class HistoryPanel extends JPanel {
 
 
         for (int i = 0; i < messages.size(); i++) {
+            int indexInMessages = i;
             String[] message = messages.get(i);
             if (!message[0].equals(this.username))
                 continue;
@@ -153,6 +156,17 @@ public class HistoryPanel extends JPanel {
             btnPanel.add(deleteBtn);
             messageBody.add(btnPanel);
 
+            deleteBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    controller.deleteOneMsg(username, receiverName, message[1], message[3], message[2]);
+                    messages.remove(indexInMessages);
+                    refreshMsg();
+                    contentSP.revalidate();
+                    contentSP.repaint();
+                }
+            });
+
             JPanel paddingY = new JPanel();
             paddingY.setLayout(new BoxLayout(paddingY, BoxLayout.PAGE_AXIS));
             paddingY.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -169,5 +183,7 @@ public class HistoryPanel extends JPanel {
             contentWrapper.add(chatWrap);
             content.add(contentWrapper, BorderLayout.PAGE_START);
         }
+        contentSP.repaint();
+        contentSP.revalidate();
     }
 }

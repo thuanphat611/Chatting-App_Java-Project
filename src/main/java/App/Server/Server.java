@@ -310,6 +310,21 @@ public class Server implements Runnable {
                         deleteDirectory(directory);
                         db.clearAllMessages(sender, receiver);
                     }
+                    else if (header.equals("/deleteOneMessage")) {
+                        String sender = splitMsg[1];
+                        String receiver = splitMsg[2];
+                        String content = splitMsg[3];
+                        String orderIndex = splitMsg[4];
+                        String type = splitMsg[5];
+                        db.deleteOneMessage(sender, receiver, orderIndex);
+                        if (type.equals("file")) {
+                            String[] splitContent = content.split(" : ");
+                            String fileSender = splitContent[0];
+                            String fileName = splitContent[1];
+                            String fileIndex = splitContent[2];
+                            deleteFile(fileSender, receiver, fileName, fileIndex);
+                        }
+                    }
                 }
                 while (true); //TODO implement change password if have enough time.p/s:i Think there is not enough time bro:<
                 System.out.println("Client " + socket.getPort() + " has disconnected");
@@ -372,7 +387,7 @@ public class Server implements Runnable {
                 return;
             }
             for (String[] message : messages) {
-                send("/chatHistory|" + message[0] + "|" + message[1] + "|" + message[2]);
+                send("/chatHistory|" + message[0] + "|" + message[1] + "|" + message[2] + "|" + message[3]);
                 count++;
                 if (count == amount)
                     break;
@@ -389,7 +404,7 @@ public class Server implements Runnable {
                 return;
             }
             for (String[] message : messages) {
-                send("/chatHistory|" + message[0] + "|" + message[1] + "|" + message[2]);
+                send("/chatHistory|" + message[0] + "|" + message[1] + "|" + message[2] + "|" + message[3]);
                 count++;
                 if (count == amount)
                     break;
@@ -459,7 +474,7 @@ public class Server implements Runnable {
             return file.exists();
         }
 
-        private static boolean deleteDirectory(File directory) {
+        private static void deleteDirectory(File directory) {
             if (directory.exists()) {
                 File[] files = directory.listFiles();
                 if (files != null) {
@@ -468,7 +483,14 @@ public class Server implements Runnable {
                     }
                 }
             }
-            return directory.delete();
+            directory.delete();
+        }
+
+        private void deleteFile(String sender, String receiver, String fileName, String fileIndex) {
+            File file = new File(storage + "\\" + sender + "\\" + receiver + "\\" + fileIndex + "_" + fileName);
+            if (!file.exists())
+                return;
+            file.delete();
         }
 
         void quit() {

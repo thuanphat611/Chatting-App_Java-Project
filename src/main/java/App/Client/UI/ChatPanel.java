@@ -13,6 +13,7 @@ public class ChatPanel extends JPanel {
     private JPanel prev;
     private Controller controller;
     private JPanel content;
+    private JScrollPane contentSP;
     private String receiverName;
     private String type;
     private String username;
@@ -76,7 +77,7 @@ public class ChatPanel extends JPanel {
         JScrollPane inputSP = new JScrollPane(inputSection);
         wrapper.add(inputSP, BorderLayout.PAGE_END);
 
-        JScrollPane contentSP = new JScrollPane(content);
+        contentSP = new JScrollPane(content);
         wrapper.add(contentSP, BorderLayout.CENTER);
 
         verticalMargin.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -86,6 +87,7 @@ public class ChatPanel extends JPanel {
         backBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                controller.setCurrentPanel("board");
                 controller.refreshRequest();
                 parent.setContentPane(prev);
                 parent.pack();
@@ -97,7 +99,9 @@ public class ChatPanel extends JPanel {
         historyBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HistoryPanel history = new HistoryPanel(parent, thisPanel, controller, username, receiverName, messages, type);
+                controller.setCurrentPanel("history");
+                controller.getChatHistory(username, receiverName, -1);
+                HistoryPanel history = new HistoryPanel(parent, thisPanel, controller, username, receiverName, controller.getHistoryBuffer(), type);
                 parent.setContentPane(history);
                 parent.pack();
                 parent.validate();
@@ -228,6 +232,8 @@ public class ChatPanel extends JPanel {
             contentWrapper.add(chatWrap);
             content.add(contentWrapper, BorderLayout.PAGE_START);
         }
+        contentSP.revalidate();
+        contentSP.repaint();
     }
 
     public String getReceiverName() {

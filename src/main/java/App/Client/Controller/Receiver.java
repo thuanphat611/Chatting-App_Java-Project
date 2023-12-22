@@ -103,10 +103,11 @@ public class Receiver implements Runnable {
                         if (listHeader.equals("/endHistory"))
                             break;
                         else if (listHeader.equals("/chatHistory")) {
-                            String[] chat = new String[3];
+                            String[] chat = new String[4];
                             chat[0] = splitList[1];
                             chat[1] = splitList[2];
                             chat[2] = splitList[3];
+                            chat[3] = splitList[4];
                             response.add(chat);
                         }
                     }

@@ -92,6 +92,10 @@ public class Controller implements Runnable {
         parent.validate();
     }
 
+    public void setCurrentPanel(String panel) {
+        currentPanel = panel;
+    }
+
     public void createBoardPanel(ArrayList<String[]> chatList) {
         board = new BoardPanel(parent, this, username, chatList);
         currentPanel = "board";
@@ -205,6 +209,10 @@ public class Controller implements Runnable {
         parent.validate();
     }
 
+    public ArrayList<String[]> getHistoryBuffer() {
+        return historyBuffer;
+    }
+
     public void updateChatPanel(String username, String receiverName) {
         if (!currentPanel.equals("chat"))
             return;
@@ -243,6 +251,10 @@ public class Controller implements Runnable {
 
     public void addMemberRequest(String groupName, String owner, String memberName) {
         sendThread.sendMessage("/addMember|" + groupName + "|" + owner + "|" + memberName);
+    }
+
+    public void deleteOneMsg(String sender, String receiver, String content, String orderIndex, String type) {
+        sendThread.sendMessage("/deleteOneMessage|" + sender + "|" + receiver + "|" + content + "|" + orderIndex + "|" + type);
     }
 
     public void sendFile(String username, String receiverName, String filePath) {
