@@ -326,7 +326,7 @@ public class Server implements Runnable {
                         }
                     }
                 }
-                while (true); //TODO implement change password if have enough time.p/s:i Think there is not enough time bro:<
+                while (true);
                 System.out.println("Client " + socket.getPort() + " has disconnected");
             }
            catch (Exception e) {

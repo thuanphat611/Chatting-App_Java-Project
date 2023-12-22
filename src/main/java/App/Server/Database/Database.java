@@ -130,7 +130,7 @@ public class Database {
         }
         return result;
     }
-//TODO delete message history when the group is deleted
+
     public boolean groupNameCheck(String username, String groupName) {
         boolean result = false;
         try {
@@ -374,24 +374,4 @@ public class Database {
         }
     }
 
-    //test Database's method todo delete this
-    public static void main(String[] args) {
-        Database db1 = new Database();
-//        String[] res = db1.getGroups("admin");
-//        for (String i : res)
-//            System.out.println(i);
-//        System.out.println(db1.register("admin", "123456"));
-//        db1.createGroup("admin", "test group 2");
-//        System.out.println(db1.groupNameCheck("admin", "test group"));
-//        db1.saveMsgHistory("phat", "admin", "hello");
-//        System.out.println(db1.checkMsgID("admin_phat_001"));
-
-//        db1.leaveGroup("test group", "admin", "admin");
-//        db1.deleteGroup("test group", "admin");
-//        db1.groupCheck("test group", "admin");
-//        System.out.println(db1.getMsgID("admin", "phat"));
-//        ArrayList<String[]> result = db1.getAllGroupMessages("admin", "test group");
-//        for (int i = 0; i < result.size(); i++)
-//            System.out.println(result.get(i)[0] + " " + result.get(i)[1]);
-    }
 }

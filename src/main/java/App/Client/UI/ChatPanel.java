@@ -190,8 +190,12 @@ public class ChatPanel extends JPanel {
                     public void actionPerformed(ActionEvent e) {
                         if (type.equals("group"))
                             controller.downloadFile(sender, receiverName, fileIndex, fileName);
-                        else
-                            controller.downloadFile(sender, username, fileIndex, fileName);
+                        else{
+                            if (username.equals(sender))
+                                controller.downloadFile(sender, receiverName, fileIndex, fileName);
+                            else
+                                controller.downloadFile(sender, username, fileIndex, fileName);
+                        }
                     }
                 });
             }
@@ -240,4 +244,3 @@ public class ChatPanel extends JPanel {
         return receiverName;
     }
 }
-//TODO handle long message
